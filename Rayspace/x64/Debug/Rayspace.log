@@ -1,0 +1,9 @@
+﻿  getbmp.cpp
+C:\Users\stoya\source\repos\Rayspace\Rayspace\getbmp.cpp(22,2): warning C4002:  too many arguments for function-like macro invocation 'assert'
+  Main.cpp
+C:\Users\stoya\source\repos\Rayspace\Rayspace\getbmp.cpp(23,2): warning C4002:  too many arguments for function-like macro invocation 'assert'
+C:\Users\stoya\source\repos\Rayspace\Rayspace\Main.cpp(19,27): warning C4244:  'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\stoya\source\repos\Rayspace\Rayspace\Main.cpp(20,27): warning C4244:  'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\stoya\source\repos\Rayspace\Rayspace\Main.cpp(29,3): error C2059:  syntax error: '}'
+  Generating Code...
+C:\Users\stoya\source\repos\Rayspace\Rayspace\Main.cpp(29,3): error C2143:  syntax error: missing ';' before '}'
