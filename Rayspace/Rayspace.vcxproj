@@ -87,12 +87,12 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\stoya\source\repos\Rayspace\Dependencies\glew-2.1.0-win32\glew-2.1.0\include;C:\Users\stoya\source\repos\Rayspace\Dependencies\glfw-3.3.bin.WIN64\include;C:\Users\stoya\source\repos\Rayspace\Dependencies\glm-0.9.6.3\glm-0.9.6.3;C:\Users\stoya\source\repos\Rayspace\Dependencies\SDL2-2.0.4\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\glew-2.1.0-win32\glew-2.1.0\include;$(SolutionDir)Dependencies\glm-0.9.6.3\glm-0.9.6.3;$(SolutionDir)Dependencies\SDL2-2.0.4\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalLibraryDirectories>C:\Users\stoya\source\repos\Rayspace\Dependencies\glew-2.1.0-win32\glew-2.1.0\lib\Release\x64;C:\Users\stoya\source\repos\Rayspace\Dependencies\glfw-3.3.bin.WIN64\lib-vc2019;C:\Users\stoya\source\repos\Rayspace\Dependencies\SDL2-2.0.4\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glew32.lib;opengl32.lib;SDL2.lib;SDL2main.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\glew-2.1.0-win32\glew-2.1.0\lib\Release\x64;$(SolutionDir)Dependencies\SDL2-2.0.4\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glew32.lib;opengl32.lib;SDL2.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -118,22 +118,30 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\stoya\source\repos\Rayspace\Dependencies\glew-2.1.0-win32\glew-2.1.0\include;C:\Users\stoya\source\repos\Rayspace\Dependencies\glfw-3.3.bin.WIN64\include;C:\Users\stoya\source\repos\Rayspace\Dependencies\glm-0.9.6.3\glm-0.9.6.3;C:\Users\stoya\source\repos\Rayspace\Dependencies\SDL2-2.0.4\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\glew-2.1.0-win32\glew-2.1.0\include;$(SolutionDir)Dependencies\glm-0.9.6.3\glm-0.9.6.3;$(SolutionDir)Dependencies\SDL2-2.0.4\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>C:\Users\stoya\source\repos\Rayspace\Dependencies\glew-2.1.0-win32\glew-2.1.0\lib\Release\x64;C:\Users\stoya\source\repos\Rayspace\Dependencies\glfw-3.3.bin.WIN64\lib-vc2019;C:\Users\stoya\source\repos\Rayspace\Dependencies\SDL2-2.0.4\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glew32.lib;opengl32.lib;SDL2.lib;SDL2main.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\glew-2.1.0-win32\glew-2.1.0\lib\Release\x64;$(SolutionDir)Dependencies\SDL2-2.0.4\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glew32.lib;opengl32.lib;SDL2.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="getbmp.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Plane.cpp" />
+    <ClCompile Include="Shape.cpp" />
+    <ClCompile Include="Sphere.cpp" />
+    <ClCompile Include="Triangle.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="getbmp.h" />
+    <ClInclude Include="Plane.h" />
+    <ClInclude Include="Shape.h" />
+    <ClInclude Include="Sphere.h" />
+    <ClInclude Include="Triangle.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
