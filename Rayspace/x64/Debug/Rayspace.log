@@ -1,6 +1,3 @@
-﻿  Main.cpp
-C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Main.cpp(42,27): warning C4244:  'initializing': conversion from 'double' to 'float', possible loss of data
-  Triangle.cpp
-  Generating Code...
-C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Main.cpp(43,27): warning C4244:  'initializing': conversion from 'double' to 'float', possible loss of data
+﻿  Mesh.cpp
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Mesh.cpp(40): warning C4715:  'Mesh::CheckIntersection': not all control paths return a value
   Rayspace.vcxproj -> C:\Users\stoya\source\repos\Rayspace\322COM\x64\Debug\Rayspace.exe

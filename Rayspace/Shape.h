@@ -15,6 +15,5 @@ public:
 	Shape();
 	~Shape();
 	virtual bool CheckIntersection(glm::vec3 _ray, glm::vec3 _cameraPos, HitInfo& _hitInfo) = 0;
-	float distToCamera;
 };
 

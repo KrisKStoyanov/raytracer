@@ -14,7 +14,6 @@ bool Triangle::CheckIntersection(glm::vec3 _ray, glm::vec3 _cameraPos, HitInfo& 
 	float u = glm::dot((_cameraPos - a), (glm::cross(_ray, e2))) / glm::dot(e1, (glm::cross(_ray, e2)));
 	float v = glm::dot(_ray,glm::cross((_cameraPos - a), e1))/glm::dot(e1, glm::cross(_ray, e2));
 	float dist = glm::dot(e2, glm::cross((_cameraPos - a), e1)) / glm::dot(e1, glm::cross(_ray, e2));
-	distToCamera = dist;
 
 	if (u < 0 || u > 1) {
 		return false;

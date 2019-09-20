@@ -17,13 +17,12 @@ bool Plane::CheckIntersection(glm::vec3 _ray, glm::vec3 _cameraPos, HitInfo& _hi
 	float denominator = glm::dot(_ray, normal);
 
 	float dist = (glm::dot((pos - _cameraPos),normal))/denominator;
-	distToCamera = dist;
-	if (distToCamera <= 0) {
+	if (dist <= 0) {
 		return false;
 	}
 
 	_hitInfo.color = color;
-	_hitInfo.distT = distToCamera;
+	_hitInfo.distT = dist;
 	_hitInfo.hit = true;
 
 	return true;

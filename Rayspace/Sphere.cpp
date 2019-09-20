@@ -17,13 +17,13 @@ bool Sphere::CheckIntersection(glm::vec3 _ray, glm::vec3 _cameraPos, HitInfo& _h
 		return false;
 	}
 	float distToFromCamRightAngle = glm::length(camToCenter) * glm::length(camToCenter) - distFromCamToCenter * distFromCamToCenter;
-	distToCamera = glm::length(camToCenter);
+	
 	if (glm::sqrt(distToFromCamRightAngle) > radius) {
 		return false;
 	}
 
 	_hitInfo.color = color;
-	_hitInfo.distT = distToCamera;
+	_hitInfo.distT = glm::length(camToCenter);
 	_hitInfo.hit = true;
 	//float t_hc = glm::sqrt(radius * radius - distFromCenterToRay);
 	//double t0 = distFromRayToCenter - t_hc;
