@@ -1,7 +1,2 @@
-﻿  Raytracer.cpp
-C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(23,40): warning C4244:  '=': conversion from 'unsigned int' to 'float', possible loss of data
-C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(100,20): warning C4018:  '<': signed/unsigned mismatch
-C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(101,21): warning C4018:  '<': signed/unsigned mismatch
-C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(103,27): warning C4244:  'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(104,27): warning C4244:  'initializing': conversion from 'double' to 'float', possible loss of data
+﻿  Main.cpp
   Rayspace.vcxproj -> C:\Users\stoya\source\repos\Rayspace\322COM\x64\Debug\Rayspace.exe

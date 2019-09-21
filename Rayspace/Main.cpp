@@ -45,17 +45,17 @@ int main(int argc, char* argv[]) {
 	Plane* TestPlane = new Plane(glm::vec3(0, -10004, -20), glm::vec3(0, 1, 0), glm::vec3(0,0,0));
 	Triangle* TestTriangle = new Triangle(glm::vec3(0, 1, -2), glm::vec3(-1.9, -1, -2), glm::vec3(1.6, -0.5, -2), glm::vec3(0.5,0.5,0));	
 
-	std::vector<Shape*> availableShapes;
-	//availableShapes.push_back(RedSphere);
-	//availableShapes.push_back(YellowSphere);
-	//availableShapes.push_back(LightBlueSphere);
-	//availableShapes.push_back(LightGreySphere);
-	//availableShapes.push_back(TestPlane);
-	//availableShapes.push_back(TestTriangle);
-	availableShapes.push_back(TeapotModelMesh);
+	std::vector<Shape*> Shapes;
+	Shapes.push_back(RedSphere);
+	Shapes.push_back(YellowSphere);
+	Shapes.push_back(LightBlueSphere);
+	Shapes.push_back(LightGreySphere);
+	Shapes.push_back(TestPlane);
+	//Shapes.push_back(TestTriangle);
+	//Shapes.push_back(TeapotModelMesh);
 
 	if (RTracer.Init("Rayspace", 800, 600, SDL_RENDERER_ACCELERATED)) {
-		RTracer.Configure();
+		RTracer.Configure(Shapes);
 		RTracer.Start();
 	}
 	else {

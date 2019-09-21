@@ -22,7 +22,7 @@ bool Raytracer::Init(std::string _WindowName, unsigned int _WindowWidth, unsigne
 	CR_WindowHeight = _WindowHeight;
 	CR_ScreenAspectRatio = CR_WindowWidth / CR_WindowHeight;
 
-	CR_MainWindow = SDL_CreateWindow(_WindowName.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, CR_WindowWidth, CR_WindowHeight, SDL_WINDOW_OPENGL);
+	CR_MainWindow = SDL_CreateWindow(_WindowName.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, CR_WindowWidth, CR_WindowHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 	if (CR_MainWindow == nullptr) {
 		std::cout << "WARNING: Window could not be created!\n" << std::endl;
 		CheckSDLError(__LINE__);
@@ -94,7 +94,7 @@ void Raytracer::CheckSDLError(int line)
 	}
 }
 
-bool Raytracer::WriteImageToFile(std::vector<Shape*> _Shape) {
+bool Raytracer::WriteImageToFile(std::vector<Shape*> _Shapes) {
 	std::ofstream ofs("./untitled.ppm", std::ios::out | std::ios::binary);
 	ofs << "P6\n" << CR_WindowWidth << " " << CR_WindowHeight << "\n255\n";
 	for (int y = 0; y < CR_WindowHeight; ++y) {
@@ -120,12 +120,12 @@ bool Raytracer::WriteImageToFile(std::vector<Shape*> _Shape) {
 			Shape* closestShape = nullptr;
 			float shortestDist = 100000;
 			glm::vec3 colorOfShape;
-			for (int i = 0; i < _Shape.size(); ++i) {
-				if (_Shape[i]->CheckIntersection(rayDirection, glm::vec3(0, 0, 0), hitInfo)) {
+			for (int i = 0; i < _Shapes.size(); ++i) {
+				if (_Shapes[i]->CheckIntersection(rayDirection, glm::vec3(0, 0, 0), hitInfo)) {
 					if (hitInfo.distT < shortestDist) {
 						shortestDist = hitInfo.distT;
 						colorOfShape = hitInfo.color;
-						closestShape = _Shape[i];
+						closestShape = _Shapes[i];
 					}
 				}
 			}
@@ -144,12 +144,18 @@ bool Raytracer::WriteImageToFile(std::vector<Shape*> _Shape) {
 		}
 	}
 	ofs.close();
+
+	//CR_ScreenSurface = SDL_GetWindowSurface(CR_MainWindow);	
+	//SDL_Surface* ImageSurface = new SDL_Surface();
+	//ImageSurface->pixels = ofs.rdbuf();
+	//SDL_BlitSurface(ImageSurface, NULL, CR_ScreenSurface, NULL);
+	//SDL_UpdateWindowSurface(CR_MainWindow);
 	return true;
 }
 
-void Raytracer::Configure()
+void Raytracer::Configure(std::vector<Shape*> _Shapes)
 {
-
+	WriteImageToFile(_Shapes);
 }
 
 void Raytracer::Update()
@@ -184,9 +190,9 @@ void Raytracer::Update()
 		//for (int i = 0; i < CR_Entities.size(); ++i) {
 		//	CR_Entities[i]->Render();
 		//}
-
 		glClear(GL_COLOR_BUFFER_BIT);
 		SDL_GL_SwapWindow(CR_MainWindow);
+		SDL_UpdateWindowSurface(CR_MainWindow);
 	}
 }
 
@@ -243,23 +249,42 @@ void Raytracer::PrintShaderLog(GLuint _ShaderID)
 	}
 }
 
-bool Raytracer::LoadMedia(std::string _ImageFilePath)
+SDL_Surface* Raytracer::LoadSurface(std::string _ImageFilePath)
 {
-	CR_MediaSurface = SDL_LoadBMP(_ImageFilePath.c_str());
-	if (CR_MediaSurface == NULL) {
+	SDL_Surface* OptimizedSurface = NULL;
+
+	SDL_Surface* OriginalSurface = SDL_LoadBMP(_ImageFilePath.c_str());
+	if (OriginalSurface == NULL) {
 		std::cout << "Unable to load image " << std::endl;
 		CheckSDLError(__LINE__);
-		return false;
+		return NULL;
 	}
-	SDL_BlitSurface(CR_MediaSurface, NULL, CR_ScreenSurface, NULL);
-	SDL_UpdateWindowSurface(CR_MainWindow);
-	return true;
+	OptimizedSurface = SDL_ConvertSurface(OriginalSurface, CR_ScreenSurface->format, 0);
+	if (OptimizedSurface == NULL) {
+		std::cout << "Unable to optimize loaded surface " << std::endl;
+		CheckSDLError(__LINE__);
+		return OriginalSurface;
+	}
+	SDL_FreeSurface(OriginalSurface);
+
+	return OptimizedSurface;
+
+	//SDL_BlitSurface(CR_MediaSurface, NULL, CR_ScreenSurface, NULL);
+	//SDL_UpdateWindowSurface(CR_MainWindow);
 }
 
 void Raytracer::UnloadMedia()
 {
-	SDL_FreeSurface(CR_MediaSurface);
-	CR_MediaSurface = NULL;
 	SDL_FreeSurface(CR_ScreenSurface);
 	CR_ScreenSurface = NULL;
+}
+
+void Raytracer::ApplySurfaceToScreen(SDL_Surface* _UpdateSurface, SDL_Surface* _ScreenSurface)
+{
+	SDL_Rect ScalingRect;
+	ScalingRect.x = 0;
+	ScalingRect.y = 0;
+	ScalingRect.w = CR_WindowWidth;
+	ScalingRect.h = CR_WindowHeight;
+	SDL_BlitScaled(_UpdateSurface, NULL, _ScreenSurface, &ScalingRect);
 }
