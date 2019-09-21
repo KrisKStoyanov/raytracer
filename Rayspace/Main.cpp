@@ -42,7 +42,6 @@ int main(int argc, char* argv[]) {
 	Sphere* LightBlueSphere = new Sphere(glm::vec3(5, 0, -25), glm::vec3(0.65, 0.77, 0.97), 3);
 	Sphere* LightGreySphere = new Sphere(glm::vec3(-5.5, 0, -15), glm::vec3(0.9, 0.9, 0.9), 3);
 
-	//Sphere* DarkGreySphere = new Sphere(glm::vec3(0, -10004, -20), glm::vec3(0.2, 0.2, 0.2), 10000);
 	Plane* TestPlane = new Plane(glm::vec3(0, -10004, -20), glm::vec3(0, 1, 0), glm::vec3(0,0,0));
 	Triangle* TestTriangle = new Triangle(glm::vec3(0, 1, -2), glm::vec3(-1.9, -1, -2), glm::vec3(1.6, -0.5, -2), glm::vec3(0.5,0.5,0));	
 
@@ -56,7 +55,7 @@ int main(int argc, char* argv[]) {
 	availableShapes.push_back(TeapotModelMesh);
 
 	if (RTracer.Init("Rayspace", 800, 600, SDL_RENDERER_ACCELERATED)) {
-		RTracer.Configure(availableShapes);
+		RTracer.Configure();
 		RTracer.Start();
 	}
 	else {

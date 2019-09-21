@@ -29,6 +29,8 @@ bool Raytracer::Init(std::string _WindowName, unsigned int _WindowWidth, unsigne
 		return 0;
 	}
 
+	CR_ScreenSurface = SDL_GetWindowSurface(CR_MainWindow);
+
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
@@ -85,15 +87,14 @@ void Raytracer::CheckSDLError(int line)
 		std::cout << "SDL Error: " << ErrorInfo << std::endl;
 
 		if (line != -1) {
-			std::cout << "\nLine: " << line << std::endl;
+			std::cout << "Line: " << line << std::endl;
 		}
 
 		SDL_ClearError();
 	}
 }
 
-void Raytracer::Configure(std::vector<Shape*> _Shape)
-{
+bool Raytracer::WriteImageToFile(std::vector<Shape*> _Shape) {
 	std::ofstream ofs("./untitled.ppm", std::ios::out | std::ios::binary);
 	ofs << "P6\n" << CR_WindowWidth << " " << CR_WindowHeight << "\n255\n";
 	for (int y = 0; y < CR_WindowHeight; ++y) {
@@ -143,6 +144,12 @@ void Raytracer::Configure(std::vector<Shape*> _Shape)
 		}
 	}
 	ofs.close();
+	return true;
+}
+
+void Raytracer::Configure()
+{
+
 }
 
 void Raytracer::Update()
@@ -185,8 +192,10 @@ void Raytracer::Update()
 
 void Raytracer::Deactivate()
 {
+	UnloadMedia();
 	SDL_GL_DeleteContext(CR_OGL_Context);
 	SDL_DestroyWindow(CR_MainWindow);
+	CR_MainWindow = NULL;
 	SDL_Quit();
 }
 
@@ -232,4 +241,25 @@ void Raytracer::PrintShaderLog(GLuint _ShaderID)
 	else {
 		std::cout << "%d is not a valid shader ID\n" << _ShaderID << std::endl;
 	}
+}
+
+bool Raytracer::LoadMedia(std::string _ImageFilePath)
+{
+	CR_MediaSurface = SDL_LoadBMP(_ImageFilePath.c_str());
+	if (CR_MediaSurface == NULL) {
+		std::cout << "Unable to load image " << std::endl;
+		CheckSDLError(__LINE__);
+		return false;
+	}
+	SDL_BlitSurface(CR_MediaSurface, NULL, CR_ScreenSurface, NULL);
+	SDL_UpdateWindowSurface(CR_MainWindow);
+	return true;
+}
+
+void Raytracer::UnloadMedia()
+{
+	SDL_FreeSurface(CR_MediaSurface);
+	CR_MediaSurface = NULL;
+	SDL_FreeSurface(CR_ScreenSurface);
+	CR_ScreenSurface = NULL;
 }

@@ -35,7 +35,7 @@ public:
 	void Start();
 	void PrintOGLVersion();
 	void CheckSDLError(int line);
-	void Configure(std::vector<Shape*> _Shapes);
+	void Configure();
 	void Update();
 	void Deactivate();
 
@@ -45,12 +45,20 @@ public:
 	unsigned int CR_WindowWidth;
 	unsigned int CR_WindowHeight;
 
-	SDL_Window* CR_MainWindow = nullptr;
+	SDL_Window* CR_MainWindow = NULL;
+	SDL_Surface* CR_ScreenSurface = NULL;
+
+	SDL_Surface* CR_MediaSurface = NULL;
 
 	SDL_GLContext CR_OGL_Context;
 	LocalState CR_CurrentState;
 
 	float CR_ScreenAspectRatio;
+
+	bool WriteImageToFile(std::vector<Shape*> _Shape);
+
+	bool LoadMedia(std::string _ImageFilePath);
+	void UnloadMedia();
 };
 
 
