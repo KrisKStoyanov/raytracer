@@ -1,5 +1,5 @@
 #include "Sphere.h"
-Sphere::Sphere(glm::vec3 _pos, glm::vec3 _color, float _radius) {
+Sphere::Sphere(glm::vec3 _pos, glm::vec4 _color, float _radius) {
 	center = _pos;
 	color = _color;
 	radius = _radius;
@@ -22,9 +22,9 @@ bool Sphere::CheckIntersection(glm::vec3 _ray, glm::vec3 _cameraPos, HitInfo& _h
 		return false;
 	}
 
-	_hitInfo.color = color;
-	_hitInfo.distT = glm::length(camToCenter);
-	_hitInfo.hit = true;
+	_hitInfo.Color = color;
+	_hitInfo.ShortestDistance = glm::length(camToCenter);
+	_hitInfo.HitStatus = true;
 	//float t_hc = glm::sqrt(radius * radius - distFromCenterToRay);
 	//double t0 = distFromRayToCenter - t_hc;
 	//double t1 = distFromRayToCenter + t_hc;

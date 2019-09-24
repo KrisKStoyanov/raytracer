@@ -17,7 +17,7 @@ Mesh::Mesh(std::vector<glm::vec3> _VertexCollection, std::vector<glm::vec3> _Nor
 		glm::vec3 a = _VertexCollection[i];
 		glm::vec3 b = _VertexCollection[i + (size_t)1];
 		glm::vec3 c = _VertexCollection[i + (unsigned int)2];
-		Triangle* MeshVert = new Triangle(a, b, c, glm::vec3(1, 1, 0));
+		Triangle* MeshVert = new Triangle(a, b, c, glm::vec4(1, 1, 0, 1));
 		TriangleCollection.push_back(MeshVert);
 	}
 	NormalCollection = _NormalCollection;
@@ -32,7 +32,7 @@ bool Mesh::CheckIntersection(glm::vec3 _Ray, glm::vec3 _CameraPos, HitInfo& _Hit
 	for (int i = 0; i < TriangleCollection.size(); ++i) {
 		if (TriangleCollection[i]->CheckIntersection(_Ray, _CameraPos, _HitInfo)) {
 
-			_HitInfo.color = TriangleCollection[i]->color;
+			_HitInfo.Color = TriangleCollection[i]->color;
 			
 			return true;
 		}

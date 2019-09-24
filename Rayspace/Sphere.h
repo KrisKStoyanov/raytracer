@@ -5,9 +5,9 @@
 class Sphere : public Shape
 {
 public:
-	Sphere(glm::vec3 _pos, glm::vec3 _color, float _radius);
+	Sphere(glm::vec3 _pos, glm::vec4 _color, float _radius);
 	bool CheckIntersection(glm::vec3 _ray, glm::vec3 _cameraPos, HitInfo& _hitInfo);
-	glm::vec3 color;
+	glm::vec4 color;
 private:
 	glm::vec3 center;
 	float radius;

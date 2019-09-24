@@ -95,11 +95,38 @@ void Raytracer::CheckSDLError(int line)
 }
 
 bool Raytracer::WriteImageToFile(std::vector<Shape*> _Shapes) {
+
+	uint32_t RMask, GMask, BMask, AMask;
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+	RMask = 0xff000000;
+	GMask = 0x00ff0000;
+	BMask = 0x0000ff00;
+	AMask = 0x000000ff;
+#else
+	RMask = 0x000000ff;
+	GMask = 0x0000ff00;
+	BMask = 0x00ff0000;
+	AMask = 0xff000000;
+#endif
+
+	SDL_Surface* ImageSurface = SDL_CreateRGBSurface(0, CR_WindowWidth, CR_WindowHeight, 32, RMask, GMask, BMask, AMask);
+	uint32_t* PixelAddress = (uint32_t*)ImageSurface->pixels;
+	int OffsetPrecomputedMod = ImageSurface->pitch * 0.25f;
+
+	bool SurfaceLock = SDL_MUSTLOCK(ImageSurface);
+	if (SurfaceLock) {
+		SDL_LockSurface(ImageSurface);
+	}
+
 	std::ofstream ofs("./untitled.ppm", std::ios::out | std::ios::binary);
 	ofs << "P6\n" << CR_WindowWidth << " " << CR_WindowHeight << "\n255\n";
 	for (int y = 0; y < CR_WindowHeight; ++y) {
 		for (int x = 0; x < CR_WindowWidth; ++x) {
 
+			/*Uint8* PixelAddress = (Uint8*)ImageSurface->pixels + y * ImageSurface->pitch + x * ImageSurface->format->BytesPerPixel;*/
+			/*int LineOffset = y * (ImageSurface->pitch / sizeof(uint32_t));*/
+			int LineOffset = y * OffsetPrecomputedMod;
+			
 			float PixelNormalizedx = (x + 0.5) / CR_WindowWidth;
 			float PixelNormalizedy = (y + 0.5) / CR_WindowHeight;
 
@@ -115,41 +142,54 @@ bool Raytracer::WriteImageToFile(std::vector<Shape*> _Shapes) {
 			glm::vec3 PcameraSpace(PixelCamerax, PixelCameray, -1);
 			glm::vec3 rayDirection = glm::normalize(PcameraSpace - glm::vec3(0, 0, 0));
 
-			HitInfo hitInfo;
-
-			Shape* closestShape = nullptr;
 			float shortestDist = 100000;
 			glm::vec3 colorOfShape;
+			Uint32 ColorBitValue = 0;
+			HitInfo hitInfo;
+
 			for (int i = 0; i < _Shapes.size(); ++i) {
 				if (_Shapes[i]->CheckIntersection(rayDirection, glm::vec3(0, 0, 0), hitInfo)) {
-					if (hitInfo.distT < shortestDist) {
-						shortestDist = hitInfo.distT;
-						colorOfShape = hitInfo.color;
-						closestShape = _Shapes[i];
+					if (hitInfo.ShortestDistance < shortestDist) {
+						shortestDist = hitInfo.ShortestDistance;
+						colorOfShape = (glm::vec3)hitInfo.Color;
+						hitInfo.HitStatus = true;
 					}
 				}
 			}
-
-			if (closestShape == nullptr) {
+			if (!hitInfo.HitStatus) {
 				ofs << (unsigned char)(182) <<
 					(unsigned char)(230) <<
 					(unsigned char)(250);
+				ColorBitValue = SDL_MapRGB(ImageSurface->format, 182, 230, 250);
 			}
 			else {
 				ofs << (unsigned char)(colorOfShape.r * 255) <<
 					(unsigned char)(colorOfShape.g * 255) <<
 					(unsigned char)(colorOfShape.b * 255);
-			}
 
+				ColorBitValue = SDL_MapRGB(ImageSurface->format, colorOfShape.r * 255, colorOfShape.g * 255, colorOfShape.b * 255);
+			}
+			PixelAddress[LineOffset + x] = ColorBitValue;
 		}
 	}
 	ofs.close();
 
-	//CR_ScreenSurface = SDL_GetWindowSurface(CR_MainWindow);	
-	//SDL_Surface* ImageSurface = new SDL_Surface();
-	//ImageSurface->pixels = ofs.rdbuf();
-	//SDL_BlitSurface(ImageSurface, NULL, CR_ScreenSurface, NULL);
-	//SDL_UpdateWindowSurface(CR_MainWindow);
+	if (ImageSurface != NULL) {
+		SDL_Surface* OptimizedSurface = SDL_ConvertSurface(ImageSurface, CR_ScreenSurface->format, 0);
+
+		if (SurfaceLock) {
+			SDL_UnlockSurface(ImageSurface);
+		}
+
+		CR_ScreenSurface = SDL_GetWindowSurface(CR_MainWindow);
+		SDL_BlitSurface(OptimizedSurface, NULL, CR_ScreenSurface, NULL);
+		SDL_FreeSurface(ImageSurface);
+		SDL_FreeSurface(OptimizedSurface);
+		ImageSurface = NULL;
+		OptimizedSurface = NULL;
+		SDL_UpdateWindowSurface(CR_MainWindow);
+	}
+	
 	return true;
 }
 
@@ -187,9 +227,6 @@ void Raytracer::Update()
 			}
 		}
 
-		//for (int i = 0; i < CR_Entities.size(); ++i) {
-		//	CR_Entities[i]->Render();
-		//}
 		glClear(GL_COLOR_BUFFER_BIT);
 		SDL_GL_SwapWindow(CR_MainWindow);
 		SDL_UpdateWindowSurface(CR_MainWindow);
@@ -202,6 +239,8 @@ void Raytracer::Deactivate()
 	SDL_GL_DeleteContext(CR_OGL_Context);
 	SDL_DestroyWindow(CR_MainWindow);
 	CR_MainWindow = NULL;
+	SDL_FreeSurface(CR_ScreenSurface);
+	CR_ScreenSurface = NULL;
 	SDL_Quit();
 }
 

@@ -1,6 +1,6 @@
 #include "Plane.h"
 
-Plane::Plane(glm::vec3 _pos, glm::vec3 _normal, glm::vec3 _color)
+Plane::Plane(glm::vec3 _pos, glm::vec3 _normal, glm::vec4 _color)
 {
 	pos = _pos;
 	normal = _normal;
@@ -21,9 +21,9 @@ bool Plane::CheckIntersection(glm::vec3 _ray, glm::vec3 _cameraPos, HitInfo& _hi
 		return false;
 	}
 
-	_hitInfo.color = color;
-	_hitInfo.distT = dist;
-	_hitInfo.hit = true;
+	_hitInfo.Color = color;
+	_hitInfo.ShortestDistance = dist;
+	_hitInfo.HitStatus = true;
 
 	return true;
 

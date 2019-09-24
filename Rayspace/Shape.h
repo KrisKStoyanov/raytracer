@@ -1,13 +1,6 @@
 #pragma once
-
+#include "HitInfo.h"
 #include <glm/glm.hpp>
-
-struct HitInfo
-{
-	glm::vec3 color;
-	float distT;
-	bool hit;
-};
 
 class Shape
 {

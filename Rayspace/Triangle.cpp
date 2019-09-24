@@ -1,6 +1,6 @@
 #include "Triangle.h"
 
-Triangle::Triangle(glm::vec3 _a, glm::vec3 _b, glm::vec3 _c, glm::vec3 _color) {
+Triangle::Triangle(glm::vec3 _a, glm::vec3 _b, glm::vec3 _c, glm::vec4 _color) {
 	a = _a;
 	b = _b;
 	c = _c;
@@ -22,9 +22,9 @@ bool Triangle::CheckIntersection(glm::vec3 _ray, glm::vec3 _cameraPos, HitInfo& 
 		return false;
 	}
 
-	_hitInfo.color = color;
-	_hitInfo.distT = dist;
-	_hitInfo.hit = true;
+	_hitInfo.Color = color;
+	_hitInfo.ShortestDistance = dist;
+	_hitInfo.HitStatus = true;
 	return true;
 }
 

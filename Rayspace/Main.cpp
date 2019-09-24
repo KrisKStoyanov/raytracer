@@ -33,17 +33,17 @@ int main(int argc, char* argv[]) {
 	std::vector<glm::vec3> ModelMeshVertices;
 	std::vector<glm::vec3> ModelMeshNormals;
 
-	loadOBJ("../teapot_simple.obj", ModelMeshVertices, ModelMeshNormals);
+	//loadOBJ("../teapot_simple.obj", ModelMeshVertices, ModelMeshNormals);
 
-	Mesh* TeapotModelMesh = new Mesh(ModelMeshVertices, ModelMeshNormals);
+	//Mesh* TeapotModelMesh = new Mesh(ModelMeshVertices, ModelMeshNormals);
 
-	Sphere* RedSphere = new Sphere(glm::vec3(0, 0, -20), glm::vec3(1, 0.32, 0.36), 4);
-	Sphere* YellowSphere = new Sphere(glm::vec3(5, -1, -15), glm::vec3(0.9, 0.76, 0.46), 2);
-	Sphere* LightBlueSphere = new Sphere(glm::vec3(5, 0, -25), glm::vec3(0.65, 0.77, 0.97), 3);
-	Sphere* LightGreySphere = new Sphere(glm::vec3(-5.5, 0, -15), glm::vec3(0.9, 0.9, 0.9), 3);
+	Sphere* RedSphere = new Sphere(glm::vec3(0, 0, -20), glm::vec4(1, 0.32, 0.36,1), 4);
+	Sphere* YellowSphere = new Sphere(glm::vec3(5, -1, -15), glm::vec4(0.9, 0.76, 0.46,1), 2);
+	Sphere* LightBlueSphere = new Sphere(glm::vec3(5, 0, -25), glm::vec4(0.65, 0.77, 0.97, 1), 3);
+	Sphere* LightGreySphere = new Sphere(glm::vec3(-5.5, 0, -15), glm::vec4(0.9, 0.9, 0.9, 1), 3);
 
-	Plane* TestPlane = new Plane(glm::vec3(0, -10004, -20), glm::vec3(0, 1, 0), glm::vec3(0,0,0));
-	Triangle* TestTriangle = new Triangle(glm::vec3(0, 1, -2), glm::vec3(-1.9, -1, -2), glm::vec3(1.6, -0.5, -2), glm::vec3(0.5,0.5,0));	
+	Plane* TestPlane = new Plane(glm::vec3(0, -10004, -20), glm::vec3(0, 1, 0), glm::vec4(0,0,0,1));
+	//Triangle* TestTriangle = new Triangle(glm::vec3(0, 1, -2), glm::vec3(-1.9, -1, -2), glm::vec3(1.6, -0.5, -2), glm::vec4(0.5,0.5,0, 1));	
 
 	std::vector<Shape*> Shapes;
 	Shapes.push_back(RedSphere);

@@ -18,6 +18,7 @@
 #include "Raytracer.h"
 #include "Camera.h"
 #include "Mesh.h"
+#include "HitInfo.h"
 
 enum LocalState {
 	STARTING,

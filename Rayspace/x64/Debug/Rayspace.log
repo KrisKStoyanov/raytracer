@@ -1,2 +1,23 @@
-﻿  Main.cpp
+﻿  Raytracer.cpp
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(23,40): warning C4244:  '=': conversion from 'unsigned int' to 'float', possible loss of data
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(114,27): warning C4244:  'initializing': conversion from 'float' to 'int', possible loss of data
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(123,20): warning C4018:  '<': signed/unsigned mismatch
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(124,21): warning C4018:  '<': signed/unsigned mismatch
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(130,27): warning C4244:  'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(131,27): warning C4244:  'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(171,113): warning C4244:  'argument': conversion from 'T' to 'Uint8', possible loss of data
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(171,113): warning C4244:         with
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(171,113): warning C4244:         [
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(171,113): warning C4244:             T=float
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(171,113): warning C4244:         ]
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(171,91): warning C4244:  'argument': conversion from 'T' to 'Uint8', possible loss of data
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(171,91): warning C4244:         with
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(171,91): warning C4244:         [
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(171,91): warning C4244:             T=float
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(171,91): warning C4244:         ]
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(171,69): warning C4244:  'argument': conversion from 'T' to 'Uint8', possible loss of data
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(171,69): warning C4244:         with
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(171,69): warning C4244:         [
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(171,69): warning C4244:             T=float
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(171,69): warning C4244:         ]
   Rayspace.vcxproj -> C:\Users\stoya\source\repos\Rayspace\322COM\x64\Debug\Rayspace.exe
