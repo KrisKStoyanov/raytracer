@@ -53,10 +53,10 @@ int main(int argc, char* argv[]) {
 	Shapes.push_back(TestPlane);
 	//Shapes.push_back(TestTriangle);
 	//Shapes.push_back(TeapotModelMesh);
-
+	
 	if (RTracer.Init("Rayspace", 800, 600, SDL_RENDERER_ACCELERATED)) {
 		Camera* MainCamera = new Camera(glm::vec3(0, 0, 0), glm::vec3(0, 0, -1), 1.0f, 0.25f);
-		RTracer.Configure(Shapes, MainCamera, glm::vec3(0.25f, 0.25f, 0.25f));
+		RTracer.Configure(Shapes, MainCamera, glm::vec3(1.0f, 1.0f, 1.0f));
 		RTracer.Start();
 	}
 	else {

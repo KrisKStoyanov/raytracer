@@ -41,11 +41,15 @@ public:
 	void Update();
 	void Deactivate();
 
+	float GetFPS();
+
 	void PrintProgramLog(GLuint _ProgramID);
 	void PrintShaderLog(GLuint _ShaderID);
 
 	unsigned int CR_WindowWidth;
 	unsigned int CR_WindowHeight;
+
+	uint32_t RMask, GMask, BMask, AMask;
 
 	glm::vec3 CR_AmbientLight;
 
@@ -65,7 +69,6 @@ public:
 	bool WriteImageToFile(std::vector<Shape*> _Shapes);
 
 	SDL_Surface* LoadSurface(std::string _ImageFilePath);
-	void UnloadMedia();
 
 	void ApplySurfaceToScreen(SDL_Surface* _UpdateSurface, SDL_Surface* _ScreenSurface);
 };

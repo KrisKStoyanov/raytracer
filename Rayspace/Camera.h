@@ -21,6 +21,7 @@ public:
 	~Camera();
 
 	glm::vec3 Position;
+	glm::vec3 Direction;
 	glm::vec3 Front;
 	glm::vec3 Up;
 
@@ -41,8 +42,6 @@ public:
 	glm::mat4 Projection;
 	glm::mat4 View;
 	glm::mat4 Model;
-
-	glm::vec3 Direction;
 
 	float AspectRatio;
 };
