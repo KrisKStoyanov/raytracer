@@ -17,6 +17,9 @@ public:
 	HitInfo();
 	~HitInfo();
 	glm::vec4 Color;
+	glm::vec3 IntersectPoint;
+	glm::vec3 ShapeCenter;
+	glm::vec3 Normal;
 	float ShortestDistance;
 	bool HitStatus = false;
 };

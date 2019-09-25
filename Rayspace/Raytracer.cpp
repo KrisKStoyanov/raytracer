@@ -147,9 +147,11 @@ bool Raytracer::WriteImageToFile(std::vector<Shape*> _Shapes) {
 	return true;
 }
 
-void Raytracer::Configure(std::vector<Shape*> _Shapes, SDL_Surface* _SurfaceTarget)
+void Raytracer::Configure(std::vector<Shape*> _Shapes, Camera* _MainCamera, glm::vec3 _AmbientLight)
 {
 	CR_Shapes = _Shapes;
+	CR_MainCamera = _MainCamera;
+	CR_AmbientLight = _AmbientLight;
 
 	uint32_t RMask, GMask, BMask, AMask;
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
@@ -164,25 +166,26 @@ void Raytracer::Configure(std::vector<Shape*> _Shapes, SDL_Surface* _SurfaceTarg
 	AMask = 0xff000000;
 #endif
 
-	SDL_Surface* ImageSurface = SDL_CreateRGBSurface(0, _SurfaceTarget->w, _SurfaceTarget->h, 32, RMask, GMask, BMask, AMask);
-	uint32_t* PixelAddress = (uint32_t*)ImageSurface->pixels;
-	int OffsetPrecomputedMod = ImageSurface->pitch * 0.25f;
-	CR_ScreenAspectRatio = _SurfaceTarget->w / _SurfaceTarget->h;
+	CR_ScreenSurface = SDL_GetWindowSurface(CR_MainWindow);
+	CR_BufferSurface = SDL_CreateRGBSurface(0, CR_ScreenSurface->w, CR_ScreenSurface->h, 32, RMask, GMask, BMask, AMask);
+	CR_ScreenAspectRatio = CR_ScreenSurface->w / CR_ScreenSurface->h;
 
-	bool SurfaceLock = SDL_MUSTLOCK(ImageSurface);
+	uint32_t* PixelAddress = (uint32_t*)CR_BufferSurface->pixels;
+	bool SurfaceLock = SDL_MUSTLOCK(CR_BufferSurface);
 	if (SurfaceLock) {
-		SDL_LockSurface(ImageSurface);
+		SDL_LockSurface(CR_BufferSurface);
 	}
 
-	for (int y = 0; y < _SurfaceTarget->h; ++y) {
-		for (int x = 0; x < _SurfaceTarget->w; ++x) {
+	int OffsetPrecomputedMod = CR_BufferSurface->pitch * 0.25f;
+	for (int y = 0; y < CR_ScreenSurface->h; ++y) {
+		for (int x = 0; x < CR_ScreenSurface->w; ++x) {
 
 			/*Uint8* PixelAddress = (Uint8*)ImageSurface->pixels + y * ImageSurface->pitch + x * ImageSurface->format->BytesPerPixel;*/
 			/*int LineOffset = y * (ImageSurface->pitch / sizeof(uint32_t));*/
 			int LineOffset = y * OffsetPrecomputedMod;
 
-			float PixelNormalizedx = (x + 0.5) / _SurfaceTarget->w;
-			float PixelNormalizedy = (y + 0.5) / _SurfaceTarget->h;
+			float PixelNormalizedx = (x + 0.5) / CR_ScreenSurface->w;
+			float PixelNormalizedy = (y + 0.5) / CR_ScreenSurface->h;
 			
 			float PixelRemappedx = 2 * PixelNormalizedx - 1;
 			float PixelRemappedy = 1 - 2 * PixelNormalizedy;
@@ -193,8 +196,9 @@ void Raytracer::Configure(std::vector<Shape*> _Shapes, SDL_Surface* _SurfaceTarg
 			float PixelCamerax = PixelRemappedx * glm::tan(glm::radians((float)90 / 2));
 			float PixelCameray = PixelRemappedy * glm::tan(glm::radians((float)90 / 2));
 
-			glm::vec3 PcameraSpace(PixelCamerax, PixelCameray, -1);
-			glm::vec3 rayDirection = glm::normalize(PcameraSpace - glm::vec3(0, 0, 0));
+			glm::vec3 PcameraSpace(PixelCamerax, PixelCameray, CR_MainCamera->Position.z -1);
+			glm::vec3 rayDirection = glm::normalize(PcameraSpace - CR_MainCamera->Position);
+			//glm::vec3 rayDirection = glm::normalize(PcameraSpace - glm::vec3(0, 0, 0));
 
 			float shortestDist = 100000;
 			glm::vec3 colorOfShape;
@@ -202,7 +206,82 @@ void Raytracer::Configure(std::vector<Shape*> _Shapes, SDL_Surface* _SurfaceTarg
 			HitInfo hitInfo;
 
 			for (int i = 0; i < _Shapes.size(); ++i) {
-				if (_Shapes[i]->CheckIntersection(rayDirection, glm::vec3(0, 0, 0), hitInfo)) {
+				if (_Shapes[i]->CheckIntersection(rayDirection, CR_MainCamera->Position, hitInfo)) {
+					if (hitInfo.ShortestDistance < shortestDist) {
+						shortestDist = hitInfo.ShortestDistance;
+						colorOfShape = (glm::vec3)hitInfo.Color;
+						hitInfo.Normal = hitInfo.IntersectPoint - hitInfo.ShapeCenter; 
+						hitInfo.HitStatus = true;
+					}
+				}
+			}
+			if (!hitInfo.HitStatus) {
+				ColorBitValue = SDL_MapRGB(CR_BufferSurface->format, 182, 230, 250);
+			}
+			else {
+
+				ColorBitValue = SDL_MapRGB(CR_BufferSurface->format, colorOfShape.r * 255, colorOfShape.g * 255, colorOfShape.b * 255);
+			}
+			PixelAddress[LineOffset + x] = ColorBitValue;
+		}
+	}
+
+	if (CR_BufferSurface != NULL) {
+		SDL_Surface* OptimizedSurface = SDL_ConvertSurface(CR_BufferSurface, CR_ScreenSurface->format, 0);
+
+		if (SurfaceLock) {
+			SDL_UnlockSurface(CR_BufferSurface);
+		}
+
+		CR_ScreenSurface = SDL_GetWindowSurface(CR_MainWindow);
+		SDL_BlitSurface(OptimizedSurface, NULL, CR_ScreenSurface, NULL);
+		//SDL_FreeSurface(CR_BufferSurface);
+		SDL_FreeSurface(OptimizedSurface);
+		//CR_BufferSurface = NULL;
+		OptimizedSurface = NULL;
+		//SDL_UpdateWindowSurface(CR_MainWindow);
+	}
+}
+
+void Raytracer::Render()
+{
+	uint32_t* PixelAddress = (uint32_t*)CR_BufferSurface->pixels;
+
+	bool SurfaceLock = SDL_MUSTLOCK(CR_BufferSurface);
+	if (SurfaceLock) {
+		SDL_LockSurface(CR_BufferSurface);
+	}
+	int OffsetPrecomputedMod = CR_BufferSurface->pitch * 0.25f;
+	for (int y = 0; y < CR_ScreenSurface->h; ++y) {
+		for (int x = 0; x < CR_ScreenSurface->w; ++x) {
+
+			/*Uint8* PixelAddress = (Uint8*)ImageSurface->pixels + y * ImageSurface->pitch + x * ImageSurface->format->BytesPerPixel;*/
+			/*int LineOffset = y * (ImageSurface->pitch / sizeof(uint32_t));*/
+			int LineOffset = y * OffsetPrecomputedMod;
+
+			float PixelNormalizedx = (x + 0.5) / CR_ScreenSurface->w;
+			float PixelNormalizedy = (y + 0.5) / CR_ScreenSurface->h;
+
+			float PixelRemappedx = 2 * PixelNormalizedx - 1;
+			float PixelRemappedy = 1 - 2 * PixelNormalizedy;
+
+			PixelRemappedx = (2 * PixelNormalizedx - 1) * CR_ScreenAspectRatio;
+			PixelRemappedy = 1 - 2 * PixelNormalizedy;
+
+			float PixelCamerax = PixelRemappedx * glm::tan(glm::radians((float)90 / 2));
+			float PixelCameray = PixelRemappedy * glm::tan(glm::radians((float)90 / 2));
+
+			glm::vec3 PcameraSpace(PixelCamerax, PixelCameray, CR_MainCamera->Position.z - 1);
+			glm::vec3 rayDirection = glm::normalize(PcameraSpace - CR_MainCamera->Position);
+			//glm::vec3 rayDirection = glm::normalize(PcameraSpace - glm::vec3(0, 0, 0));
+
+			float shortestDist = 100000;
+			glm::vec3 colorOfShape;
+			Uint32 ColorBitValue = 0;
+			HitInfo hitInfo;
+
+			for (int i = 0; i < CR_Shapes.size(); ++i) {
+				if (CR_Shapes[i]->CheckIntersection(rayDirection, CR_MainCamera->Position, hitInfo)) {
 					if (hitInfo.ShortestDistance < shortestDist) {
 						shortestDist = hitInfo.ShortestDistance;
 						colorOfShape = (glm::vec3)hitInfo.Color;
@@ -211,68 +290,52 @@ void Raytracer::Configure(std::vector<Shape*> _Shapes, SDL_Surface* _SurfaceTarg
 				}
 			}
 			if (!hitInfo.HitStatus) {
-				ColorBitValue = SDL_MapRGB(ImageSurface->format, 182, 230, 250);
+				ColorBitValue = SDL_MapRGB(CR_BufferSurface->format, 182 * CR_AmbientLight.r, 230 * CR_AmbientLight.g, 250 * CR_AmbientLight.b);
 			}
 			else {
 
-				ColorBitValue = SDL_MapRGB(ImageSurface->format, colorOfShape.r * 255, colorOfShape.g * 255, colorOfShape.b * 255);
+				ColorBitValue = SDL_MapRGB(CR_BufferSurface->format, (colorOfShape.r * 255) * CR_AmbientLight.r, (colorOfShape.g * 255) * CR_AmbientLight.g, (colorOfShape.b * 255) * CR_AmbientLight.b);
 			}
 			PixelAddress[LineOffset + x] = ColorBitValue;
 		}
 	}
 
-	if (ImageSurface != NULL) {
-		SDL_Surface* OptimizedSurface = SDL_ConvertSurface(ImageSurface, _SurfaceTarget->format, 0);
-
-		if (SurfaceLock) {
-			SDL_UnlockSurface(ImageSurface);
-		}
-
-		CR_ScreenSurface = SDL_GetWindowSurface(CR_MainWindow);
-		SDL_BlitSurface(OptimizedSurface, NULL, CR_ScreenSurface, NULL);
-		SDL_FreeSurface(ImageSurface);
-		SDL_FreeSurface(OptimizedSurface);
-		ImageSurface = NULL;
-		OptimizedSurface = NULL;
-		SDL_UpdateWindowSurface(CR_MainWindow);
+	if (SurfaceLock) {
+		SDL_UnlockSurface(CR_BufferSurface);
 	}
+	SDL_BlitSurface(CR_BufferSurface, NULL, CR_ScreenSurface, NULL);
 }
 
 void Raytracer::Update()
 {
 	while (CR_CurrentState == 1) {
+		Render();
 		SDL_Event CurrentEvent;
 		while (SDL_PollEvent(&CurrentEvent)) {
 			if (CurrentEvent.type == SDL_QUIT) {
 				CR_CurrentState = INACTIVE;
 				break;
 			}
-			if (CurrentEvent.type == SDL_WINDOWEVENT) {
-				CR_ScreenSurface = SDL_GetWindowSurface(CR_MainWindow);
-				switch (CurrentEvent.window.event) {
-				case SDL_WINDOWEVENT_MOVED:
-					Configure(CR_Shapes, CR_ScreenSurface);
-					break;
-				case SDL_WINDOWEVENT_RESIZED:
-					Configure(CR_Shapes, CR_ScreenSurface);
-					break;
-				default:
-					break;
-				}
-			}
 			if (CurrentEvent.type == SDL_KEYDOWN) {
 				switch (CurrentEvent.key.keysym.sym) {
 				case SDLK_ESCAPE:
 					CR_CurrentState = INACTIVE;
 					break;
-				case SDLK_r:
-					glClearColor(1, 0, 0, 1);
+				case SDLK_w:
+					CR_MainCamera->Position.z += 1.0f;
+					std::cout << "W" << std::endl;
 					break;
-				case SDLK_g:
-					glClearColor(0, 1, 0, 1);
+				case SDLK_a:
+					CR_MainCamera->Position.x -=  1.0f;
+					std::cout << "A" << std::endl;
 					break;
-				case SDLK_b:
-					glClearColor(0, 0, 1, 1);
+				case SDLK_d:
+					CR_MainCamera->Position.x += 1.0f;
+					std::cout << "D" << std::endl;
+					break;
+				case SDLK_s:
+					CR_MainCamera->Position.z -= 1.0f;
+					std::cout << "S" << std::endl;
 					break;
 				default:
 					break;
@@ -292,6 +355,8 @@ void Raytracer::Deactivate()
 	SDL_GL_DeleteContext(CR_OGL_Context);
 	SDL_DestroyWindow(CR_MainWindow);
 	CR_MainWindow = NULL;
+	SDL_FreeSurface(CR_BufferSurface);
+	CR_BufferSurface = NULL;
 	SDL_FreeSurface(CR_ScreenSurface);
 	CR_ScreenSurface = NULL;
 	SDL_Quit();

@@ -134,6 +134,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="getbmp.cpp" />
     <ClCompile Include="HitInfo.cpp" />
+    <ClCompile Include="Light.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="objloader.cpp" />
@@ -147,6 +148,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="getbmp.h" />
     <ClInclude Include="HitInfo.h" />
+    <ClInclude Include="Light.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="objloader.h" />
     <ClInclude Include="Plane.h" />

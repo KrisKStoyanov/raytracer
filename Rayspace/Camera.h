@@ -12,17 +12,20 @@
 #include <glm/matrix.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "HitInfo.h"
+
 class Camera
 {
 public:
-	Camera(glm::vec3 _Position, glm::vec3 _Target, GLfloat _MovementSpeed, GLfloat _MouseSensitivity);
+	Camera(glm::vec3 _Position, glm::vec3 _Direction, GLfloat _MovementSpeed, GLfloat _MouseSensitivity);
 	~Camera();
 
 	glm::vec3 Position;
 	glm::vec3 Front;
 	glm::vec3 Up;
-	glm::vec3 Right;
-	glm::vec3 WorldUp;
+
+	glm::vec3 Right = glm::vec3(1,0,0);
+	glm::vec3 WorldUp = glm::vec3(0, 1, 0);
 
 	GLfloat Yaw;
 	GLfloat Pitch;
@@ -33,11 +36,13 @@ public:
 	void Update();
 
 	glm::vec3 GetPosition();
+	void SetPosition(glm::vec3 _ModifiedPos);
 
 	glm::mat4 Projection;
 	glm::mat4 View;
+	glm::mat4 Model;
 
-	glm::vec3 Target;
+	glm::vec3 Direction;
 
 	float AspectRatio;
 };
