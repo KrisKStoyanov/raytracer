@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
 	//Shapes.push_back(TeapotModelMesh);
 
 	if (RTracer.Init("Rayspace", 800, 600, SDL_RENDERER_ACCELERATED)) {
-		RTracer.Configure(Shapes);
+		RTracer.Configure(Shapes, SDL_GetWindowSurface(RTracer.CR_MainWindow));
 		RTracer.Start();
 	}
 	else {

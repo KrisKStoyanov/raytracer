@@ -36,7 +36,7 @@ public:
 	void Start();
 	void PrintOGLVersion();
 	void CheckSDLError(int line);
-	void Configure(std::vector<Shape*> _Shapes);
+	void Configure(std::vector<Shape*> _Shapes, SDL_Surface* _SurfaceTarget);
 	void Update();
 	void Deactivate();
 
@@ -45,6 +45,8 @@ public:
 
 	unsigned int CR_WindowWidth;
 	unsigned int CR_WindowHeight;
+
+	std::vector<Shape*> CR_Shapes;
 
 	SDL_Window* CR_MainWindow = NULL;
 	SDL_Surface* CR_ScreenSurface = NULL;
