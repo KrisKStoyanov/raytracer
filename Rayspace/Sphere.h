@@ -5,14 +5,13 @@
 class Sphere : public Shape
 {
 public:
-	Sphere(glm::vec3 _pos, glm::vec4 _color, float _radius, glm::vec4 _ambient, glm::vec4 _diffuse, glm::vec4 _specular);
+	Sphere(glm::vec3 _pos, float _radius, glm::vec3 _ambientC, glm::vec3 _diffuseC, glm::vec3 _specularC);
 	~Sphere();
 	bool CheckIntersection(glm::vec3 _ray, glm::vec3 _cameraPos, HitInfo& _hitInfo);
-	glm::vec4 color;
-	glm::vec4 Ambient;
-	glm::vec4 Diffuse;
-	glm::vec4 Specular;
-	glm::vec3 Center;
-	float radius;
+	glm::vec3 AmbientC;
+	glm::vec3 DiffuseC;
+	glm::vec3 SpecularC;
+	glm::vec3 Position;
+	float Radius;
 };
 

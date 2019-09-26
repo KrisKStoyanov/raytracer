@@ -16,11 +16,13 @@ class HitInfo
 public:
 	HitInfo();
 	~HitInfo();
-	glm::vec4 Color;
-	glm::vec3 IntersectPoint;
-	glm::vec3 ShapeCenter;
+	glm::vec3 AmbientC;
+	glm::vec3 DiffuseC;
+	glm::vec3 SpecularC;
+	glm::vec3 IntPoint;
+	glm::vec3 Position;
 	glm::vec3 Normal;
-	float ShortestDistance;
+	float Distance;
 	bool HitStatus = false;
 };
 

@@ -19,6 +19,7 @@
 #include "Camera.h"
 #include "Mesh.h"
 #include "HitInfo.h"
+#include "Light.h"
 
 enum LocalState {
 	STARTING,
@@ -36,12 +37,10 @@ public:
 	void Start();
 	void PrintOGLVersion();
 	void CheckSDLError(int line);
-	void Configure(std::vector<Shape*> _Shapes, Camera* _MainCamera, glm::vec3 _AmbientLight = glm::vec3(0.1, 0.1, 0.1));
+	void Configure(std::vector<Shape*> _Shapes, Camera* _MainCamera, glm::vec3 _AmbientLight, Light* _PointLight);
 	void Render();
 	void Update();
 	void Deactivate();
-
-	float GetFPS();
 
 	void PrintProgramLog(GLuint _ProgramID);
 	void PrintShaderLog(GLuint _ShaderID);
@@ -52,6 +51,8 @@ public:
 	uint32_t RMask, GMask, BMask, AMask;
 
 	glm::vec3 CR_AmbientLight;
+	
+	Light* CR_PointLight = NULL;
 
 	std::vector<Shape*> CR_Shapes;
 

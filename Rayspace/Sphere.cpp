@@ -1,35 +1,51 @@
 #include "Sphere.h"
-Sphere::Sphere(glm::vec3 _pos, glm::vec4 _color, float _radius, glm::vec4 _ambient, glm::vec4 _diffuse, glm::vec4 _specular) {
-	Center = _pos;
-	color = _color;
-	radius = _radius;
+Sphere::Sphere(glm::vec3 _pos, float _radius, glm::vec3 _ambientC, glm::vec3 _diffuseC, glm::vec3 _specularC) {
+	Position = _pos;
+	Radius = _radius;
 
-	Ambient = _ambient;
-	Diffuse = _diffuse;
-	Specular = _specular;
+	AmbientC = _ambientC;
+	DiffuseC = _diffuseC;
+	SpecularC = _specularC;
 }
 
 Sphere::~Sphere() {
 
 }
 
-bool Sphere::CheckIntersection(glm::vec3 _ray, glm::vec3 _cameraPos, HitInfo& _hitInfo)
+bool Sphere::CheckIntersection(glm::vec3 _Ray, glm::vec3 _CameraPos, HitInfo& _HitInfo)
 {
-	glm::vec3 camToCenter = Center - _cameraPos;
-	float distFromCamToCenter = glm::dot(camToCenter, glm::normalize(_ray));
-	if (distFromCamToCenter < 0) {
+	//l
+	glm::vec3 RelativePosToCam = Position - _CameraPos;
+	//T_ca
+	float RayDirScalar = glm::dot(RelativePosToCam, _Ray);
+	if (RayDirScalar < 0) {
 		return false;
 	}
-	float distToFromCamRightAngle = glm::length(camToCenter) * glm::length(camToCenter) - distFromCamToCenter * distFromCamToCenter;
-	
-	if (glm::sqrt(distToFromCamRightAngle) > radius) {
+	//s*s
+	float DistToRightAngle = glm::dot(RelativePosToCam, RelativePosToCam) - (RayDirScalar * RayDirScalar);
+	//s
+	DistToRightAngle = glm::sqrt(DistToRightAngle);
+	if (DistToRightAngle > Radius) {
 		return false;
 	}
+	//T_hc
+	float DistFromRightAngleToIntPoint = glm::sqrt((Radius * Radius) - (DistToRightAngle * DistToRightAngle));
+	//T_0
+	float DistToEntry = RayDirScalar - DistFromRightAngleToIntPoint;
+	//T_1
+	float DistToExit = RayDirScalar + DistFromRightAngleToIntPoint;
 
-	_hitInfo.Color = color;
-	_hitInfo.ShortestDistance = glm::length(camToCenter);
-	_hitInfo.ShapeCenter = Center;
-	_hitInfo.HitStatus = true;
+	glm::vec3 IntPoint = _CameraPos + DistToEntry * _Ray;
+	glm::vec3 Normal = glm::normalize(Position - IntPoint);
+
+	_HitInfo.AmbientC = AmbientC;
+	_HitInfo.DiffuseC = DiffuseC;
+	_HitInfo.SpecularC = SpecularC;
+	_HitInfo.Distance = glm::length(RelativePosToCam);
+	_HitInfo.Position = Position;
+	_HitInfo.IntPoint = IntPoint;
+	_HitInfo.Normal = Normal;
+	_HitInfo.HitStatus = true;
 	//float t_hc = glm::sqrt(radius * radius - distFromCenterToRay);
 	//double t0 = distFromRayToCenter - t_hc;
 	//double t1 = distFromRayToCenter + t_hc;

@@ -37,12 +37,12 @@ int main(int argc, char* argv[]) {
 
 	//Mesh* TeapotModelMesh = new Mesh(ModelMeshVertices, ModelMeshNormals);
 
-	Sphere* RedSphere = new Sphere(glm::vec3(0, 0, -20), glm::vec4(1, 0.32, 0.36,1), 4, glm::vec4(0.5,0.5,0.5,1.0), glm::vec4(0.5,0.5,0.5,1.0), glm::vec4(0.2,0.2,0.2,1.0));
-	Sphere* YellowSphere = new Sphere(glm::vec3(5, -1, -15), glm::vec4(0.9, 0.76, 0.46,1), 2, glm::vec4(0.5, 0.5, 0.5, 1.0), glm::vec4(0.5, 0.5, 0.5, 1.0), glm::vec4(0.2, 0.2, 0.2, 1.0));
-	Sphere* LightBlueSphere = new Sphere(glm::vec3(5, 0, -25), glm::vec4(0.65, 0.77, 0.97, 1), 3, glm::vec4(0.5, 0.5, 0.5, 1.0), glm::vec4(0.5, 0.5, 0.5, 1.0), glm::vec4(0.2, 0.2, 0.2, 1.0));
-	Sphere* LightGreySphere = new Sphere(glm::vec3(-5.5, 0, -15), glm::vec4(0.9, 0.9, 0.9, 1), 3, glm::vec4(0.5, 0.5, 0.5, 1.0), glm::vec4(0.5, 0.5, 0.5, 1.0), glm::vec4(0.2, 0.2, 0.2, 1.0));
+	Sphere* RedSphere = new Sphere(glm::vec3(0, 0, -20), 4, glm::vec3(1, 0.32, 0.36), glm::vec3(1, 0.32, 0.36), glm::vec3(0.5,0.5,0.5));
+	Sphere* YellowSphere = new Sphere(glm::vec3(5, -1, -15), 2, glm::vec3(0.9, 0.76, 0.46), glm::vec3(0.9, 0.76, 0.46), glm::vec3(0.5, 0.5, 0.5));
+	Sphere* LightBlueSphere = new Sphere(glm::vec3(5, 0, -25), 3, glm::vec3(0.65, 0.77, 0.97), glm::vec3(0.65, 0.77, 0.97), glm::vec3(0.5, 0.5, 0.5));
+	Sphere* LightGreySphere = new Sphere(glm::vec3(-5.5, 0, -15), 3, glm::vec3(0.9, 0.9, 0.9), glm::vec3(0.9, 0.9, 0.9), glm::vec3(0.5, 0.5, 0.5));
 
-	Plane* TestPlane = new Plane(glm::vec3(0, -10004, -20), glm::vec3(0, 1, 0), glm::vec4(0,0,0,1));
+	Plane* TestPlane = new Plane(glm::vec3(0, -10004, -20), glm::vec3(0, 1, 0), glm::vec3(0,0,0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0));
 	//Triangle* TestTriangle = new Triangle(glm::vec3(0, 1, -2), glm::vec3(-1.9, -1, -2), glm::vec3(1.6, -0.5, -2), glm::vec4(0.5,0.5,0, 1));	
 
 	std::vector<Shape*> Shapes;
@@ -56,7 +56,8 @@ int main(int argc, char* argv[]) {
 	
 	if (RTracer.Init("Rayspace", 800, 600, SDL_RENDERER_ACCELERATED)) {
 		Camera* MainCamera = new Camera(glm::vec3(0, 0, 0), glm::vec3(0, 0, -1), 1.0f, 0.25f);
-		RTracer.Configure(Shapes, MainCamera, glm::vec3(1.0f, 1.0f, 1.0f));
+		Light* PointLight = new Light(glm::vec3(0, 20, 0), glm::vec3(1.0f, 1.0f, 1.0f));
+		RTracer.Configure(Shapes, MainCamera, glm::vec3(0.1f, 0.1f, 0.1f), PointLight);
 		RTracer.Start();
 	}
 	else {

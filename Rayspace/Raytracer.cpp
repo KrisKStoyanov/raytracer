@@ -126,18 +126,18 @@ bool Raytracer::WriteImageToFile(std::vector<Shape*> _Shapes) {
 			float PixelCameray = PixelRemappedy * glm::tan(glm::radians((float)90 / 2));
 
 			glm::vec3 PcameraSpace(PixelCamerax, PixelCameray, -1);
-			glm::vec3 rayDirection = glm::normalize(PcameraSpace - glm::vec3(0, 0, 0));
+			glm::vec3 RayDirection = glm::normalize(PcameraSpace - glm::vec3(0, 0, 0));
 
-			float shortestDist = 100000;
-			glm::vec3 colorOfShape;
+			float DistCheck = 100000;
+			glm::vec3 AmbientC;
 			Uint32 ColorBitValue = 0;
 			HitInfo hitInfo;
 
 			for (int i = 0; i < _Shapes.size(); ++i) {
-				if (_Shapes[i]->CheckIntersection(rayDirection, glm::vec3(0, 0, 0), hitInfo)) {
-					if (hitInfo.ShortestDistance < shortestDist) {
-						shortestDist = hitInfo.ShortestDistance;
-						colorOfShape = (glm::vec3)hitInfo.Color;
+				if (_Shapes[i]->CheckIntersection(RayDirection, glm::vec3(0, 0, 0), hitInfo)) {
+					if (hitInfo.Distance < DistCheck) {
+						DistCheck = hitInfo.Distance;
+						AmbientC = (glm::vec3)hitInfo.AmbientC;
 						hitInfo.HitStatus = true;
 					}
 				}
@@ -148,9 +148,9 @@ bool Raytracer::WriteImageToFile(std::vector<Shape*> _Shapes) {
 					(unsigned char)(250);
 			}
 			else {
-				ofs << (unsigned char)(colorOfShape.r * 255) <<
-					(unsigned char)(colorOfShape.g * 255) <<
-					(unsigned char)(colorOfShape.b * 255);
+				ofs << (unsigned char)((AmbientC.r * 255) * CR_AmbientLight.r) <<
+					(unsigned char)((AmbientC.g * 255) * CR_AmbientLight.g) <<
+					(unsigned char)((AmbientC.b * 255) * CR_AmbientLight.b);
 			}
 		}
 	}
@@ -159,11 +159,12 @@ bool Raytracer::WriteImageToFile(std::vector<Shape*> _Shapes) {
 	return true;
 }
 
-void Raytracer::Configure(std::vector<Shape*> _Shapes, Camera* _MainCamera, glm::vec3 _AmbientLight)
+void Raytracer::Configure(std::vector<Shape*> _Shapes, Camera* _MainCamera, glm::vec3 _AmbientLight, Light* _PointLight)
 {
 	CR_Shapes = _Shapes;
 	CR_MainCamera = _MainCamera;
 	CR_AmbientLight = _AmbientLight;
+	CR_PointLight = _PointLight;
 
 	Render();
 }
@@ -185,6 +186,7 @@ void Raytracer::Render()
 		for (int y = 0; y < CR_ScreenSurface->h; ++y) {
 
 			int LineOffset = y * OffsetPrecomputedMod;
+
 			float PixelNormalizedy = (y + 0.5) / CR_ScreenSurface->h;
 			float PixelRemappedy = 1 - 2 * PixelNormalizedy;
 			float PixelCameray = PixelRemappedy * FOVMod;
@@ -195,33 +197,44 @@ void Raytracer::Render()
 				/*int LineOffset = y * (ImageSurface->pitch / sizeof(uint32_t));*/				
 
 				float PixelNormalizedx = (x + 0.5) / CR_ScreenSurface->w;
-				float PixelRemappedx = 2 * PixelNormalizedx - 1;
-				PixelRemappedx = (2 * PixelNormalizedx - 1) * CR_ScreenAspectRatio;
+				float PixelRemappedx = (2 * PixelNormalizedx - 1) * CR_ScreenAspectRatio;
 				float PixelCamerax = PixelRemappedx * FOVMod;
 
-				glm::vec3 PcameraSpace(PixelCamerax, PixelCameray, CR_MainCamera->Position.z -1);
-				glm::vec3 rayDirection = glm::normalize(PcameraSpace - CR_MainCamera->Position);
-				//glm::vec3 rayDirection = glm::normalize(PcameraSpace - glm::vec3(0, 0, 0));
+				glm::vec3 PixelCameraSpacePos(PixelCamerax, PixelCameray, CR_MainCamera->Position.z -1);
+				glm::vec3 RayDirection = glm::normalize(PixelCameraSpacePos - CR_MainCamera->Position);
 
 				float DistCheck = 100000;
-				glm::vec3 ColorOfShape;
+				glm::vec3 AmbientC;
+				glm::vec3 DiffuseC;
+				glm::vec3 SpecularC;
+				glm::vec3 Normal;
+				glm::vec3 IntPoint;
+
 				Uint32 ColorBitValue = 0;
-				HitInfo hitInfo;
+				HitInfo Hit;
 
 				for (int i = 0; i < CR_Shapes.size(); ++i) {
-					if (CR_Shapes[i]->CheckIntersection(rayDirection, CR_MainCamera->Position, hitInfo)) {
-						if (hitInfo.ShortestDistance < DistCheck) {
-							DistCheck = hitInfo.ShortestDistance;
-							ColorOfShape = (glm::vec3)hitInfo.Color;
-							hitInfo.HitStatus = true;
+					if (CR_Shapes[i]->CheckIntersection(RayDirection, CR_MainCamera->Position, Hit)) {
+						if (Hit.Distance < DistCheck) {
+							DistCheck = Hit.Distance;
+							AmbientC = Hit.AmbientC;
+							DiffuseC = Hit.DiffuseC;
+							SpecularC = Hit.SpecularC;
+							IntPoint = Hit.IntPoint;
+							Normal = Hit.Normal;
+							Hit.HitStatus = true;
 						}
 					}
 				}
-				if (!hitInfo.HitStatus) {
+				if (!Hit.HitStatus) {
 					ColorBitValue = SDL_MapRGB(CR_BufferSurface->format, 182 * CR_AmbientLight.r, 230 * CR_AmbientLight.g, 250 * CR_AmbientLight.b);
 				}
 				else {
-					ColorBitValue = SDL_MapRGB(CR_BufferSurface->format, (ColorOfShape.r * 255) * CR_AmbientLight.r, (ColorOfShape.g * 255) * CR_AmbientLight.g, (ColorOfShape.b * 255) * CR_AmbientLight.b);
+					glm::vec3 LightRay = IntPoint - CR_PointLight->Position;
+					LightRay = glm::normalize(LightRay);
+					Normal = glm::normalize(Normal);
+					glm::vec3 FinalColor = DiffuseC * CR_PointLight->ColorIntensity * (glm::max(0.0f, glm::dot(LightRay, Normal)));
+					ColorBitValue = SDL_MapRGB(CR_BufferSurface->format, (FinalColor.r * 255), (FinalColor.g * 255), (FinalColor.b * 255));
 				}
 				PixelAddress[LineOffset + x] = ColorBitValue;
 			}
@@ -316,11 +329,6 @@ void Raytracer::Deactivate()
 	SDL_DestroyWindow(CR_MainWindow);
 	CR_MainWindow = NULL;
 	SDL_Quit();
-}
-
-float Raytracer::GetFPS()
-{
-	
 }
 
 void Raytracer::PrintProgramLog(GLuint _ProgramID)
