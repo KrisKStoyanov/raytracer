@@ -1,12 +1,13 @@
 #include "Plane.h"
 
-Plane::Plane(glm::vec3 _pos, glm::vec3 _normal, glm::vec3 _AmbientC, glm::vec3 _DiffuseC, glm::vec3 _SpecularC)
+Plane::Plane(glm::vec3 _pos, glm::vec3 _normal, glm::vec3 _AmbientC, glm::vec3 _DiffuseC, glm::vec3 _SpecularC, float _Shininess)
 {
 	Position = _pos;
 	Normal = _normal;
 	AmbientC = _AmbientC;
 	DiffuseC = _DiffuseC;
 	SpecularC = _SpecularC;
+	Shininess = _Shininess;
 }
 
 Plane::~Plane()
