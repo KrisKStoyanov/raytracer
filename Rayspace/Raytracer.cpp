@@ -204,11 +204,16 @@ void Raytracer::Render()
 				glm::vec3 RayDirection = glm::normalize(PixelCameraSpacePos - CR_MainCamera->Position);
 
 				float DistCheck = 100000;
+
 				glm::vec3 AmbientC;
 				glm::vec3 DiffuseC;
 				glm::vec3 SpecularC;
+				float Shininess = 0;
+
 				glm::vec3 Normal;
 				glm::vec3 IntPoint;
+				glm::vec3 PrimRayDir;
+				glm::vec3 LightReflDir;
 
 				Uint32 ColorBitValue = 0;
 				HitInfo Hit;
@@ -217,11 +222,16 @@ void Raytracer::Render()
 					if (CR_Shapes[i]->CheckIntersection(RayDirection, CR_MainCamera->Position, Hit)) {
 						if (Hit.Distance < DistCheck) {
 							DistCheck = Hit.Distance;
+
 							AmbientC = Hit.AmbientC;
 							DiffuseC = Hit.DiffuseC;
 							SpecularC = Hit.SpecularC;
+							Shininess = Hit.Shininess;
+
 							IntPoint = Hit.IntPoint;
 							Normal = Hit.Normal;
+							PrimRayDir = Hit.PrimRayDir;
+
 							Hit.HitStatus = true;
 						}
 					}
@@ -230,11 +240,34 @@ void Raytracer::Render()
 					ColorBitValue = SDL_MapRGB(CR_BufferSurface->format, 182 * CR_AmbientLight.r, 230 * CR_AmbientLight.g, 250 * CR_AmbientLight.b);
 				}
 				else {
-					glm::vec3 LightRay = IntPoint - CR_PointLight->Position;
-					LightRay = glm::normalize(LightRay);
+					glm::vec3 LightDir = IntPoint - CR_PointLight->Position;
+
+					LightDir = glm::normalize(LightDir);
 					Normal = glm::normalize(Normal);
-					glm::vec3 FinalColor = DiffuseC * CR_PointLight->ColorIntensity * (glm::max(0.0f, glm::dot(LightRay, Normal)));
-					ColorBitValue = SDL_MapRGB(CR_BufferSurface->format, (FinalColor.r * 255), (FinalColor.g * 255), (FinalColor.b * 255));
+
+					PrimRayDir = glm::normalize(PrimRayDir);
+					LightReflDir = 2 * (glm::dot(LightDir, Normal)) * Normal - LightDir;
+					LightReflDir = glm::normalize(LightReflDir);
+
+					glm::vec3 AmbientColor = AmbientC * CR_AmbientLight;
+					glm::vec3 DiffuseColor = DiffuseC * CR_PointLight->ColorIntensity * (glm::max(0.0f, glm::dot(LightDir, Normal)));
+					glm::vec3 SpecularColor = SpecularC * CR_PointLight->ColorIntensity * glm::pow((glm::max(0.0f, glm::dot(PrimRayDir, LightReflDir))), Shininess);
+					float Red = AmbientColor.r * 255 + DiffuseColor.r * 255 + SpecularColor.r * 255;
+					float Green = AmbientColor.g * 255 + DiffuseColor.g * 255 + SpecularColor.g * 255;
+					float Blue = AmbientColor.b * 255 + DiffuseColor.b * 255 + SpecularColor.b * 255;
+					if (Red > 255) {
+						Red = 255;
+					}
+					if (Green > 255) {
+						Green = 255;
+					}
+					if (Blue > 255) {
+						Blue = 255;
+					}
+					//if (DiffuseColor.r >= 0 && DiffuseColor.g >= 0 && DiffuseColor.b >= 0) {
+					//	PhongShadingColor += SpecularColor;
+					//}
+					ColorBitValue = SDL_MapRGB(CR_BufferSurface->format, Red, Green, Blue);
 				}
 				PixelAddress[LineOffset + x] = ColorBitValue;
 			}

@@ -16,12 +16,18 @@ class HitInfo
 public:
 	HitInfo();
 	~HitInfo();
+
 	glm::vec3 AmbientC;
 	glm::vec3 DiffuseC;
 	glm::vec3 SpecularC;
-	glm::vec3 IntPoint;
+	float Shininess;
+
 	glm::vec3 Position;
+	glm::vec3 IntPoint;
 	glm::vec3 Normal;
+	glm::vec3 PrimRayDir;
+	glm::vec3 LightReflDir;
+
 	float Distance;
 	bool HitStatus = false;
 };
