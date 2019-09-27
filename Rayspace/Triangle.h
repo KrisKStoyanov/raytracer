@@ -10,6 +10,8 @@ public:
 	~Triangle();
 	bool CheckIntersection(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, HitInfo& _hitInfo);
 
+	float DistToCamera;
+
 	glm::vec3 a;
 	glm::vec3 b;
 	glm::vec3 c;

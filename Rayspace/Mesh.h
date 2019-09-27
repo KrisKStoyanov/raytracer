@@ -21,7 +21,7 @@ public:
 	Mesh(std::vector<glm::vec3> _VertexCollection, std::vector<glm::vec3> _NormalCollection);
 	~Mesh();
 
-	bool CheckIntersection(glm::vec3 _Ray, glm::vec3 _CameraPos, HitInfo &_HitInfo);
+	bool CheckIntersection(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, HitInfo &_HitInfo);
 
 	std::vector<Triangle*> TriangleCollection;
 	std::vector<glm::vec3> NormalCollection;

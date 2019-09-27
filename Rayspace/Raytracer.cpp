@@ -31,29 +31,27 @@ bool Raytracer::Init(std::string _WindowName, unsigned int _WindowWidth, unsigne
 
 	CR_ScreenSurface = SDL_GetWindowSurface(CR_MainWindow);
 
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
+	//SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+	//SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+	//SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
 
-	// Turn on double buffering with a 24bit Z buffer.
-	// May need to change this to 1,16 or 32 based on system
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	//SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-	CR_OGL_Context = SDL_GL_CreateContext(CR_MainWindow);
+	//CR_OGL_Context = SDL_GL_CreateContext(CR_MainWindow);
 
-	glewExperimental = GL_TRUE;
-	GLenum initState = glewInit();
+	//glewExperimental = GL_TRUE;
+	//GLenum initState = glewInit();
 
-	if (initState != GLEW_OK) {
-		std::cout << glewGetErrorString(glewInit()) << std::endl;
-		return 0;
-	}
+	//if (initState != GLEW_OK) {
+	//	std::cout << glewGetErrorString(glewInit()) << std::endl;
+	//	return 0;
+	//}
 
 	// This makes our buffer swap syncronized with the monitor's vertical refresh - Vsync
-	if (SDL_GL_SetSwapInterval(1) < 0) {
-		std::cout << "WARNING: Vsync could not be set!" << std::endl;
-		CheckSDLError(__LINE__);
-	}
+	//if (SDL_GL_SetSwapInterval(1) < 0) {
+	//	std::cout << "WARNING: Vsync could not be set!" << std::endl;
+	//	CheckSDLError(__LINE__);
+	//}
 
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 	RMask = 0xff000000;
@@ -67,11 +65,11 @@ bool Raytracer::Init(std::string _WindowName, unsigned int _WindowWidth, unsigne
 	AMask = 0xff000000;
 #endif
 
-	glClearColor(0, 0, 0, 1);
-	glClear(GL_COLOR_BUFFER_BIT);
-	SDL_GL_SwapWindow(CR_MainWindow);
+	//glClearColor(0, 0, 0, 1);
+	//glClear(GL_COLOR_BUFFER_BIT);
+	//SDL_GL_SwapWindow(CR_MainWindow);
 
-	PrintOGLVersion();
+	//PrintOGLVersion();
 
 	return 1;
 }
@@ -239,6 +237,8 @@ void Raytracer::Render()
 		SDL_FreeSurface(CR_BufferSurface);
 		CR_BufferSurface = NULL;
 		SDL_UpdateWindowSurface(CR_MainWindow);
+		//std::cout << "Unoptimized Format: " << SDL_GetPixelFormatName(CR_BufferSurface->format->format) << std::endl;
+		//std::cout << "Optmized Format: " << SDL_GetPixelFormatName(OptimizedSurface->format->format) << std::endl;
 	}
 	else {
 		std::cout << "WARNING: Unable to render surface! " << std::endl;
@@ -299,16 +299,20 @@ void Raytracer::Update()
 			}
 		}
 
-		glClear(GL_COLOR_BUFFER_BIT);
-		SDL_UpdateWindowSurface(CR_MainWindow);
+		//glClear(GL_COLOR_BUFFER_BIT);
 		//SDL_GL_SwapWindow(CR_MainWindow);
-
+		SDL_UpdateWindowSurface(CR_MainWindow);
+		
 		/*std::cout << "FPS: " << GetFPS() << std::endl;*/
 	}
 }
 
 void Raytracer::Deactivate()
 {
+	for (int i = 0; i < CR_Shapes.size(); ++i) {
+		delete CR_Shapes[i];
+	}
+
 	SDL_GL_DeleteContext(CR_OGL_Context);
 	SDL_FreeSurface(CR_BufferSurface);
 	CR_BufferSurface = NULL;

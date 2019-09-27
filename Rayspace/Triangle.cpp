@@ -40,6 +40,8 @@ bool Triangle::CheckIntersection(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, 
 	glm::vec3 Normal = w * n0 + u * n1 + v * n2;
 	Normal = glm::normalize(Normal);
 
+	DistToCamera = DistToEntry;
+
 	if (_HitInfo.Distance > DistToEntry ||
 		_HitInfo.Distance == 0.0f) {
 		_HitInfo.AmbientC = AmbientC;
