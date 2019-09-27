@@ -33,9 +33,9 @@ int main(int argc, char* argv[]) {
 	std::vector<glm::vec3> ModelMeshVertices;
 	std::vector<glm::vec3> ModelMeshNormals;
 
-	//loadOBJ("../teapot_simple.obj", ModelMeshVertices, ModelMeshNormals);
+	loadOBJ("../teapot_simple.obj", ModelMeshVertices, ModelMeshNormals);
 
-	//Mesh* TeapotModelMesh = new Mesh(ModelMeshVertices, ModelMeshNormals);
+	Mesh* TeapotModelMesh = new Mesh(ModelMeshVertices, ModelMeshNormals);
 
 	Sphere* RedSphere = new Sphere(glm::vec3(0, 0, -20), 4, glm::vec3(1, 0.32, 0.36), glm::vec3(1, 0.32, 0.36), glm::vec3(0.7f, 0.7f, 0.7f), 128);
 	Sphere* YellowSphere = new Sphere(glm::vec3(5, -1, -15), 2, glm::vec3(0.9, 0.76, 0.46), glm::vec3(0.9, 0.76, 0.46), glm::vec3(0.7f, 0.7f, 0.7f), 128);
@@ -53,10 +53,18 @@ int main(int argc, char* argv[]) {
 	Shapes.push_back(LightBlueSphere);
 	Shapes.push_back(LightGreySphere);
 	Shapes.push_back(Floor);
-	Shapes.push_back(Polygon);
-	//Shapes.push_back(TeapotModelMesh);
+	//Shapes.push_back(Polygon);
+	Shapes.push_back(TeapotModelMesh);
 
-	Camera* MainCamera = new Camera(glm::vec3(0, 0, 0), glm::vec3(0, 0, -1), 1.0f, 0.25f);
+	delete TeapotModelMesh;
+	delete RedSphere;
+	delete YellowSphere;
+	delete LightBlueSphere;
+	delete LightGreySphere;
+	delete Floor;
+	delete Polygon;
+
+	Camera* MainCamera = new Camera(glm::vec3(0, 0, 5), glm::vec3(0, 0, -1), 1.0f, 0.25f);
 	Light* PointLight = new Light(glm::vec3(1, 3, 1), glm::vec3(1.0f, 1.0f, 1.0f));
 	glm::vec3 AmbientLightC = glm::vec3(0.3f, 0.3f, 0.3f);
 	
