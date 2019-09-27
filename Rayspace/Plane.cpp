@@ -15,22 +15,30 @@ Plane::~Plane()
 
 }
 
-bool Plane::CheckIntersection(glm::vec3 _Ray, glm::vec3 _CameraPos, HitInfo& _HitInfo)
+bool Plane::CheckIntersection(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, HitInfo& _HitInfo)
 {
-	float Denominator = glm::dot(_Ray, Normal);
+	float Denominator = glm::dot(_RayDirection, Normal);
 	if (Denominator <= 0) {
 		return false;
 	}
-	float DistToCam = (glm::dot((Position - _CameraPos),Normal))/ Denominator;
 
-	_HitInfo.AmbientC = AmbientC;
-	_HitInfo.DiffuseC = DiffuseC;
-	_HitInfo.SpecularC = SpecularC;
-	_HitInfo.Distance = DistToCam;
-	_HitInfo.Position = Position;
-	_HitInfo.IntPoint = _CameraPos + DistToCam * _Ray;
-	_HitInfo.Normal = Normal;
-	_HitInfo.HitStatus = true;
+	float DistToEntry = (glm::dot(Position - _RayOrigin, Normal)) / Denominator;
+
+	glm::vec3 IntPoint = _RayOrigin + DistToEntry * _RayDirection;
+
+	if (_HitInfo.Distance > DistToEntry ||
+		_HitInfo.Distance == 0.0f) {
+		_HitInfo.AmbientC = AmbientC;
+		_HitInfo.DiffuseC = DiffuseC;
+		_HitInfo.SpecularC = SpecularC;
+		_HitInfo.Shininess = Shininess;
+
+		_HitInfo.Distance = DistToEntry;
+		_HitInfo.IntPoint = IntPoint;
+		_HitInfo.Normal = Normal;
+
+		_HitInfo.HitStatus = true;
+	}
 
 	return true;
 

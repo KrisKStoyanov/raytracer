@@ -1,21 +1,30 @@
 #include "Triangle.h"
 
-Triangle::Triangle(glm::vec3 _a, glm::vec3 _b, glm::vec3 _c, glm::vec3 _AmbientC, glm::vec3 _DiffuseC, glm::vec3 _SpecularC) {
+Triangle::Triangle(glm::vec3 _a, glm::vec3 _b, glm::vec3 _c, 
+	glm::vec3 _n0, glm::vec3 _n1, glm::vec3 _n2,
+	glm::vec3 _AmbientC, glm::vec3 _DiffuseC, glm::vec3 _SpecularC, float _Shininess) {
+
 	a = _a;
 	b = _b;
 	c = _c;
+
+	n0 = _n0;
+	n1 = _n1;
+	n2 = _n2;
+
 	AmbientC = _AmbientC;
 	DiffuseC = _DiffuseC;
 	SpecularC = _SpecularC;
+	Shininess = _Shininess;
 }
 
-bool Triangle::CheckIntersection(glm::vec3 _ray, glm::vec3 _cameraPos, HitInfo& _hitInfo)
+bool Triangle::CheckIntersection(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, HitInfo& _HitInfo)
 {
 	glm::vec3 e1 = b - a;
 	glm::vec3 e2 = c - a;
-	float u = glm::dot((_cameraPos - a), (glm::cross(_ray, e2))) / glm::dot(e1, (glm::cross(_ray, e2)));
-	float v = glm::dot(_ray,glm::cross((_cameraPos - a), e1))/glm::dot(e1, glm::cross(_ray, e2));
-	float Dist = glm::dot(e2, glm::cross((_cameraPos - a), e1)) / glm::dot(e1, glm::cross(_ray, e2));
+	float u = glm::dot((_RayOrigin - a), (glm::cross(_RayDirection, e2))) / glm::dot(e1, (glm::cross(_RayDirection, e2)));
+	float v = glm::dot(_RayDirection,glm::cross((_RayOrigin - a), e1))/glm::dot(e1, glm::cross(_RayDirection, e2));
+	float DistToEntry = glm::dot(e2, glm::cross((_RayOrigin - a), e1)) / glm::dot(e1, glm::cross(_RayDirection, e2));
 
 	if (u < 0 || u > 1) {
 		return false;
@@ -24,12 +33,26 @@ bool Triangle::CheckIntersection(glm::vec3 _ray, glm::vec3 _cameraPos, HitInfo& 
 		return false;
 	}
 
-	_hitInfo.AmbientC = AmbientC;
-	_hitInfo.DiffuseC = DiffuseC;
-	_hitInfo.SpecularC = SpecularC;
-	_hitInfo.Distance = Dist;
-	_hitInfo.IntPoint = glm::vec3(0, 0, 0);
-	_hitInfo.HitStatus = true;
+	float w = 1 - u - v;
+
+	glm::vec3 IntPoint = _RayDirection * DistToEntry;
+	//glm::vec3 Normal = glm::normalize(glm::cross(b-a,c-a));
+	glm::vec3 Normal = w * n0 + u * n1 + v * n2;
+	Normal = glm::normalize(Normal);
+
+	if (_HitInfo.Distance > DistToEntry ||
+		_HitInfo.Distance == 0.0f) {
+		_HitInfo.AmbientC = AmbientC;
+		_HitInfo.DiffuseC = DiffuseC;
+		_HitInfo.SpecularC = SpecularC;
+		_HitInfo.Shininess = Shininess;
+
+		_HitInfo.Distance = DistToEntry;
+		_HitInfo.IntPoint = IntPoint;
+		_HitInfo.Normal = Normal;
+
+		_HitInfo.HitStatus = true;
+	}
 	return true;
 }
 

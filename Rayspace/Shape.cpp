@@ -9,7 +9,7 @@ Shape::~Shape()
 {
 }
 
-bool Shape::CheckIntersection(glm::vec3 _ray, glm::vec3 _cameraPos, HitInfo& _hitInfo)
+bool Shape::CheckIntersection(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, HitInfo& _HitInfo)
 {
 	return false;
 }

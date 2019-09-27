@@ -42,26 +42,26 @@ int main(int argc, char* argv[]) {
 	Sphere* LightBlueSphere = new Sphere(glm::vec3(5, 0, -25), 3, glm::vec3(0.65, 0.77, 0.97), glm::vec3(0.65, 0.77, 0.97), glm::vec3(0.7f, 0.7f, 0.7f), 128);
 	Sphere* LightGreySphere = new Sphere(glm::vec3(-5.5, 0, -15), 3, glm::vec3(0.9, 0.9, 0.9), glm::vec3(0.9, 0.9, 0.9), glm::vec3(0.7f, 0.7f, 0.7f), 128);
 
-	Plane* Floor = new Plane(glm::vec3(-10, -1, -10), glm::vec3(0, 1, 0), glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(0.8f, 0.8f, 0.8f), 0);
-	//Plane* TestPlane = new Plane(glm::vec3(0, -10004, -20), glm::vec3(0, 1, 0), glm::vec3(0,0,0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0));
-	//Triangle* TestTriangle = new Triangle(glm::vec3(0, 1, -2), glm::vec3(-1.9, -1, -2), glm::vec3(1.6, -0.5, -2), glm::vec4(0.5,0.5,0, 1));	
+	Plane* Floor = new Plane(glm::vec3(0, -4, -20), glm::vec3(0, -1, 0), glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(0.8f, 0.8f, 0.8f), 128);
+	Triangle* Polygon = new Triangle(glm::vec3(0, 1, -2), glm::vec3(-1.9f, -1, -2), glm::vec3(1.6f, -0.5f, -2),
+		glm::vec3(0.0f, 0.6f, 1.0f), glm::vec3(-0.4f,-0.4f,1.0f),glm::vec3(0.4f,-0.4f,1.0f),
+		glm::vec3(1.0, 1.0f, 0.0f), glm::vec3(0.5f, 0.5f, 0.0f), glm::vec3(0.7f, 0.7f, 0.7f), 100);
 
 	std::vector<Shape*> Shapes;
 	Shapes.push_back(RedSphere);
 	Shapes.push_back(YellowSphere);
 	Shapes.push_back(LightBlueSphere);
 	Shapes.push_back(LightGreySphere);
-	//Shapes.push_back(Floor);
-	//Shapes.push_back(TestPlane);
-	//Shapes.push_back(TestTriangle);
+	Shapes.push_back(Floor);
+	Shapes.push_back(Polygon);
 	//Shapes.push_back(TeapotModelMesh);
 
 	Camera* MainCamera = new Camera(glm::vec3(0, 0, 0), glm::vec3(0, 0, -1), 1.0f, 0.25f);
-	Light* PointLight = new Light(glm::vec3(0, 20, 0), glm::vec3(1.0f, 1.0f, 1.0f));
-	//glm::vec3 AmbientLightC = glm::vec3(0.1f, 0.1f, 0.1f);
+	Light* PointLight = new Light(glm::vec3(1, 3, 1), glm::vec3(1.0f, 1.0f, 1.0f));
+	glm::vec3 AmbientLightC = glm::vec3(0.3f, 0.3f, 0.3f);
 	
 	if (RTracer.Init("Rayspace", 800, 600, SDL_RENDERER_ACCELERATED)) {
-		RTracer.Configure(Shapes, MainCamera, glm::vec3(0.1f, 0.1f, 0.1f), PointLight);
+		RTracer.Configure(Shapes, MainCamera, AmbientLightC, PointLight);
 		RTracer.Start();
 	}
 	else {

@@ -13,14 +13,14 @@ Mesh::Mesh(std::vector<glm::vec3> _VertexCollection, std::vector<glm::vec3> _Nor
 	//	TriangleCollection.push_back(MeshVert);
 	//}
 
-	for (size_t i = 0; i < _VertexCollection.size(); i+=3) {
-		glm::vec3 a = _VertexCollection[i];
-		glm::vec3 b = _VertexCollection[i + (size_t)1];
-		glm::vec3 c = _VertexCollection[i + (unsigned int)2];
-		Triangle* MeshVert = new Triangle(a, b, c, glm::vec3(1, 1, 0), glm::vec3(1, 1, 0), glm::vec3(1, 1, 0));
-		TriangleCollection.push_back(MeshVert);
-	}
-	NormalCollection = _NormalCollection;
+	//for (size_t i = 0; i < _VertexCollection.size(); i+=3) {
+	//	glm::vec3 a = _VertexCollection[i];
+	//	glm::vec3 b = _VertexCollection[i + (size_t)1];
+	//	glm::vec3 c = _VertexCollection[i + (unsigned int)2];
+	//	Triangle* MeshVert = new Triangle(a, b, c, glm::vec3(1, 1, 0), glm::vec3(1, 1, 0), glm::vec3(1, 1, 0), 128);
+	//	TriangleCollection.push_back(MeshVert);
+	//}
+	//NormalCollection = _NormalCollection;
 }
 
 Mesh::~Mesh()

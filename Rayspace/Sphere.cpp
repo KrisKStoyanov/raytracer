@@ -13,12 +13,12 @@ Sphere::~Sphere() {
 
 }
 
-bool Sphere::CheckIntersection(glm::vec3 _Ray, glm::vec3 _CameraPos, HitInfo& _HitInfo)
+bool Sphere::CheckIntersection(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, HitInfo& _HitInfo)
 {
 	//l
-	glm::vec3 RelativePosToCam = Position - _CameraPos;
+	glm::vec3 RelativePosToCam = Position - _RayOrigin;
 	//T_ca
-	float RayDirScalar = glm::dot(RelativePosToCam, _Ray);
+	float RayDirScalar = glm::dot(RelativePosToCam, _RayDirection);
 	if (RayDirScalar < 0) {
 		return false;
 	}
@@ -36,24 +36,22 @@ bool Sphere::CheckIntersection(glm::vec3 _Ray, glm::vec3 _CameraPos, HitInfo& _H
 	//T_1
 	float DistToExit = RayDirScalar + DistFromRightAngleToIntPoint;
 
-	glm::vec3 IntPoint = _CameraPos + DistToEntry * _Ray;
+	glm::vec3 IntPoint = _RayOrigin + DistToEntry * _RayDirection;
 	glm::vec3 Normal = glm::normalize(Position - IntPoint);
 
-	glm::vec3 PrimRayDir = IntPoint + DistToEntry * _CameraPos;
+	if (_HitInfo.Distance > DistToEntry ||
+		_HitInfo.Distance == 0.0f) {
+		_HitInfo.AmbientC = AmbientC;
+		_HitInfo.DiffuseC = DiffuseC;
+		_HitInfo.SpecularC = SpecularC;
+		_HitInfo.Shininess = Shininess;
 
-	_HitInfo.AmbientC = AmbientC;
-	_HitInfo.DiffuseC = DiffuseC;
-	_HitInfo.SpecularC = SpecularC;
-	_HitInfo.Shininess = Shininess;
-	_HitInfo.Distance = glm::length(RelativePosToCam);
-	_HitInfo.Position = Position;
-	_HitInfo.IntPoint = IntPoint;
-	_HitInfo.Normal = Normal;
-	_HitInfo.PrimRayDir = PrimRayDir;
-	_HitInfo.HitStatus = true;
-	//float t_hc = glm::sqrt(radius * radius - distFromCenterToRay);
-	//double t0 = distFromRayToCenter - t_hc;
-	//double t1 = distFromRayToCenter + t_hc;
+		_HitInfo.Distance = DistToEntry;
+		_HitInfo.IntPoint = IntPoint;
+		_HitInfo.Normal = Normal;
+
+		_HitInfo.HitStatus = true;
+	}
 	return true;
 }
 
