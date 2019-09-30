@@ -218,13 +218,11 @@ void Raytracer::Render()
 					glm::vec3 AmbientColor = PrimaryRayHit.AmbientC * CR_AmbientLight;
 					glm::vec3 DiffuseColor = PrimaryRayHit.DiffuseC * CR_PointLight->ColorIntensity * glm::max(0.0f, DiffuseScalar);
 					
-					glm::vec3 LightReflDir = glm::normalize(2 * glm::dot(RevLightDir, PrimaryRayHit.Normal) * PrimaryRayHit.Normal - RevLightDir);
+					//glm::vec3 LightReflDir = glm::normalize(2 * glm::dot(RevLightDir, PrimaryRayHit.Normal) * PrimaryRayHit.Normal - RevLightDir);
 					//glm::vec3 LRD = glm::normalize(glm::reflect(LightDir, PrimaryRayHit.Normal));
-					float SpecularScalar = glm::dot(LightReflDir, RayDirection);
-					if (SpecularScalar > 0.0f) {
-						SpecularScalar = glm::pow(SpecularScalar, PrimaryRayHit.Shininess);
-					}					
-					glm::vec3 SpecularColor = PrimaryRayHit.SpecularC * CR_PointLight->ColorIntensity * glm::max(0.0f, SpecularScalar);
+					glm::vec3 LightReflDir = glm::normalize(2 * -DiffuseScalar * PrimaryRayHit.Normal - RevLightDir);
+					float SpecularScalar = glm::dot(LightReflDir, RayDirection);	
+					glm::vec3 SpecularColor = PrimaryRayHit.SpecularC * CR_PointLight->ColorIntensity * glm::pow(glm::max(0.0f, SpecularScalar), PrimaryRayHit.Shininess);
 
 					glm::vec3 FinalColor = AmbientColor + DiffuseColor + SpecularColor;
 					
