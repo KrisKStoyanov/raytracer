@@ -30,19 +30,24 @@ int main(int argc, char* argv[]) {
 	//	ScreenImageBuffer[x] = new glm::vec3[SCREEN_WIDTH];
 	//}
 
-	std::vector<glm::vec3> ModelMeshVertices;
-	std::vector<glm::vec3> ModelMeshNormals;
+	std::vector<glm::vec3> TeapotMeshVertices;
+	std::vector<glm::vec3> TeapotMeshNormals;
 
-	loadOBJ("../teapot_simple_smooth.obj", ModelMeshVertices, ModelMeshNormals);
+	std::vector<glm::vec3> CubeMeshVertices;
+	std::vector<glm::vec3> CubeMeshNormals;
 
-	Mesh* TeapotModelMesh = new Mesh(ModelMeshVertices, ModelMeshNormals);
+	loadOBJ("../teapot_simple_smooth.obj", TeapotMeshVertices, TeapotMeshNormals);
+	loadOBJ("../cube_simple.obj", CubeMeshVertices, CubeMeshNormals);
+
+	Mesh* TeapotModelMesh = new Mesh(TeapotMeshVertices, TeapotMeshNormals, glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), 128);
+	Mesh* CubeModelMesh = new Mesh(CubeMeshVertices, CubeMeshNormals, glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), 128);
 
 	Sphere* RedSphere = new Sphere(glm::vec3(0, 0, -20), 4, glm::vec3(1, 0.32, 0.36), glm::vec3(1, 0.32, 0.36), glm::vec3(0.7f, 0.7f, 0.7f), 128);
 	Sphere* YellowSphere = new Sphere(glm::vec3(5, -1, -15), 2, glm::vec3(0.9, 0.76, 0.46), glm::vec3(0.9, 0.76, 0.46), glm::vec3(0.7f, 0.7f, 0.7f), 128);
 	Sphere* LightBlueSphere = new Sphere(glm::vec3(5, 0, -25), 3, glm::vec3(0.65, 0.77, 0.97), glm::vec3(0.65, 0.77, 0.97), glm::vec3(0.7f, 0.7f, 0.7f), 128);
 	Sphere* LightGreySphere = new Sphere(glm::vec3(-5.5, 0, -15), 3, glm::vec3(0.9, 0.9, 0.9), glm::vec3(0.9, 0.9, 0.9), glm::vec3(0.7f, 0.7f, 0.7f), 128);
 
-	Plane* Floor = new Plane(glm::vec3(0, -4, -20), glm::vec3(0, -1, 0), glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(0.8f, 0.8f, 0.8f), 128);
+	Plane* Floor = new Plane(glm::vec3(0, -4, -20), glm::vec3(0, 1, 0), glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(1.0f, 1.0f, 1.0f), 128);
 	//Triangle* Polygon = new Triangle(glm::vec3(0, 1, -2), glm::vec3(-1.9f, -1, -2), glm::vec3(1.6f, -0.5f, -2),
 	//	glm::vec3(0.0f, 0.6f, 1.0f), glm::vec3(-0.4f,-0.4f,1.0f),glm::vec3(0.4f,-0.4f,1.0f),
 	//	glm::vec3(1.0, 1.0f, 0.0f), glm::vec3(0.5f, 0.5f, 0.0f), glm::vec3(0.7f, 0.7f, 0.7f), 100);
@@ -53,6 +58,7 @@ int main(int argc, char* argv[]) {
 	Shapes.push_back(LightBlueSphere);
 	Shapes.push_back(LightGreySphere);
 	Shapes.push_back(Floor);
+	//Shapes.push_back(CubeModelMesh);
 	//Shapes.push_back(TeapotModelMesh);
 
 	//Shapes.push_back(Polygon);

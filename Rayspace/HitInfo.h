@@ -27,6 +27,6 @@ public:
 	glm::vec3 Normal;
 
 	float Distance = 0.0f;
-	bool HitStatus = false;
+	bool HitStatus = false;\
 };
 

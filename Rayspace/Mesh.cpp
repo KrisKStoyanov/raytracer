@@ -1,6 +1,6 @@
 #include "Mesh.h"
 
-Mesh::Mesh(std::vector<glm::vec3> _VertexCollection, std::vector<glm::vec3> _NormalCollection)
+Mesh::Mesh(std::vector<glm::vec3> _VertexCollection, std::vector<glm::vec3> _NormalCollection, glm::vec3 _AmbientC, glm::vec3 _DiffuseC, glm::vec3 _SpecularC, float _Shininess)
 {
 	for (size_t i = 0; i < _VertexCollection.size(); i+=3) {
 		glm::vec3 a = _VertexCollection[i];
@@ -12,7 +12,7 @@ Mesh::Mesh(std::vector<glm::vec3> _VertexCollection, std::vector<glm::vec3> _Nor
 		Triangle* MeshVert = new Triangle(
 			a, b, c, 
 			n0, n1, n2,
-			glm::vec3(1, 1, 0), glm::vec3(1, 1, 0), glm::vec3(1, 1, 0), 128);
+			_AmbientC, _DiffuseC, _SpecularC, _Shininess);
 		TriangleCollection.push_back(MeshVert);
 	}
 	NormalCollection = _NormalCollection;

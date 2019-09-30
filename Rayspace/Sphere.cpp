@@ -15,29 +15,28 @@ Sphere::~Sphere() {
 
 bool Sphere::CheckIntersection(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, HitInfo& _HitInfo)
 {
-	//l
+	//L
 	glm::vec3 RelativePosToCam = Position - _RayOrigin;
 	//T_ca
 	float RayDirScalar = glm::dot(RelativePosToCam, _RayDirection);
 	if (RayDirScalar < 0) {
 		return false;
 	}
-	//s*s
-	float DistToRightAngle = glm::dot(RelativePosToCam, RelativePosToCam) - (RayDirScalar * RayDirScalar);
-	//s
-	DistToRightAngle = glm::sqrt(DistToRightAngle);
-	if (DistToRightAngle > Radius) {
+	//S
+	float DistToRightAngleSqrd = glm::dot(RelativePosToCam, RelativePosToCam) - (RayDirScalar * RayDirScalar);
+	float RadiusSqrd = Radius * Radius;
+	if (DistToRightAngleSqrd > RadiusSqrd) {
 		return false;
 	}
 	//T_hc
-	float DistFromRightAngleToIntPoint = glm::sqrt((Radius * Radius) - (DistToRightAngle * DistToRightAngle));
+	float DistFromRightAngleToIntPoint = glm::sqrt(RadiusSqrd - DistToRightAngleSqrd);
 	//T_0
 	float DistToEntry = RayDirScalar - DistFromRightAngleToIntPoint;
 	//T_1
 	float DistToExit = RayDirScalar + DistFromRightAngleToIntPoint;
 
 	glm::vec3 IntPoint = _RayOrigin + DistToEntry * _RayDirection;
-	glm::vec3 Normal = glm::normalize(Position - IntPoint);
+	glm::vec3 Normal = glm::normalize(IntPoint - Position);
 
 	if (_HitInfo.Distance > DistToEntry ||
 		_HitInfo.Distance == 0.0f) {

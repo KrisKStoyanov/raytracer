@@ -179,15 +179,15 @@ void Raytracer::Render()
 			SDL_LockSurface(CR_BufferSurface);
 		}
 
-		int OffsetPrecomputedMod = CR_BufferSurface->pitch * 0.25f;
-		float FOVMod = glm::tan(glm::radians((float)90 / 2));
+		int OffsetMod = CR_BufferSurface->pitch * 0.25f;
+		float FOV_Angle = glm::tan(glm::radians((float)90 / 2));
 		for (int y = 0; y < CR_ScreenSurface->h; ++y) {
 
-			int LineOffset = y * OffsetPrecomputedMod;
+			int LineOffset = y * OffsetMod;
 
 			float PixelNormalizedy = (y + 0.5) / CR_ScreenSurface->h;
 			float PixelRemappedy = 1 - 2 * PixelNormalizedy;
-			float PixelCameray = PixelRemappedy * FOVMod;
+			float PixelCameray = PixelRemappedy * FOV_Angle;
 
 			for (int x = 0; x < CR_ScreenSurface->w; ++x) {
 
@@ -196,28 +196,36 @@ void Raytracer::Render()
 
 				float PixelNormalizedx = (x + 0.5) / CR_ScreenSurface->w;
 				float PixelRemappedx = (2 * PixelNormalizedx - 1) * CR_ScreenAspectRatio;
-				float PixelCamerax = PixelRemappedx * FOVMod;
+				float PixelCamerax = PixelRemappedx * FOV_Angle;
 
-				glm::vec3 PixelCameraSpacePos(PixelCamerax, PixelCameray, CR_MainCamera->Position.z -1);
+				glm::vec3 PixelCameraSpacePos(PixelCamerax + CR_MainCamera->Position.x, PixelCameray + CR_MainCamera->Position.y, CR_MainCamera->Position.z - 1);
 				glm::vec3 RayDirection = glm::normalize(PixelCameraSpacePos - CR_MainCamera->Position);
 
 				Uint32 ColorBitValue = 0;
-				HitInfo Hit;
+				HitInfo PrimaryRayHit;
+				HitInfo LightRayHit;
 
 				for (int i = 0; i < CR_Shapes.size(); ++i) {
-					CR_Shapes[i]->CheckIntersection(CR_MainCamera->Position, RayDirection, Hit);
+					CR_Shapes[i]->CheckIntersection(CR_MainCamera->Position, RayDirection, PrimaryRayHit);
 				}
-				if (!Hit.HitStatus) {
+				if (!PrimaryRayHit.HitStatus) {
 					ColorBitValue = SDL_MapRGB(CR_BufferSurface->format, 182, 230, 250);
 				}
 				else {
-					glm::vec3 LightDir = glm::normalize(Hit.IntPoint -CR_PointLight->Position);
-					float LightDirScalar = glm::dot(LightDir, Hit.Normal);
-					glm::vec3 LightReflDir = glm::normalize(2 * LightDirScalar * Hit.Normal - LightDir);
+					glm::vec3 LightDir = glm::normalize(CR_PointLight->Position - PrimaryRayHit.IntPoint);
+					glm::vec3 RevLightDir = glm::normalize(PrimaryRayHit.IntPoint - CR_PointLight->Position);
+					float DiffuseScalar = glm::dot(LightDir, PrimaryRayHit.Normal);
+					glm::vec3 AmbientColor = PrimaryRayHit.AmbientC * CR_AmbientLight;
+					glm::vec3 DiffuseColor = PrimaryRayHit.DiffuseC * CR_PointLight->ColorIntensity * glm::max(0.0f, DiffuseScalar);
+					
+					glm::vec3 LightReflDir = glm::normalize(2 * glm::dot(RevLightDir, PrimaryRayHit.Normal) * PrimaryRayHit.Normal - RevLightDir);
+					//glm::vec3 LRD = glm::normalize(glm::reflect(LightDir, PrimaryRayHit.Normal));
+					float SpecularScalar = glm::dot(LightReflDir, RayDirection);
+					if (SpecularScalar > 0.0f) {
+						SpecularScalar = glm::pow(SpecularScalar, PrimaryRayHit.Shininess);
+					}					
+					glm::vec3 SpecularColor = PrimaryRayHit.SpecularC * CR_PointLight->ColorIntensity * glm::max(0.0f, SpecularScalar);
 
-					glm::vec3 AmbientColor = Hit.AmbientC * CR_AmbientLight;
-					glm::vec3 DiffuseColor = Hit.DiffuseC * CR_PointLight->ColorIntensity * (glm::max(0.0f, LightDirScalar));
-					glm::vec3 SpecularColor = Hit.SpecularC * CR_PointLight->ColorIntensity * glm::pow((glm::max(0.0f, glm::dot(RayDirection, LightReflDir))), Hit.Shininess);
 					glm::vec3 FinalColor = AmbientColor + DiffuseColor + SpecularColor;
 					
 					ColorBitValue = SDL_MapRGB(CR_BufferSurface->format, glm::clamp(FinalColor.r * 255, 0.0f, 255.0f), glm::clamp(FinalColor.g * 255, 0.0f, 255.0f), glm::clamp(FinalColor.b * 255, 0.0f, 255.0f));
@@ -279,12 +287,12 @@ void Raytracer::Update()
 					std::cout << "W" << std::endl;
 					break;
 				case SDLK_a:
-					CR_MainCamera->Position.x +=  1.0f;
+					CR_MainCamera->Position.x -=  1.0f;
 					Render();
 					std::cout << "A" << std::endl;
 					break;
 				case SDLK_d:
-					CR_MainCamera->Position.x -= 1.0f;
+					CR_MainCamera->Position.x += 1.0f;
 					Render();
 					std::cout << "D" << std::endl;
 					break;

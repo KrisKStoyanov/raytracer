@@ -24,7 +24,7 @@ bool Triangle::CheckIntersection(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, 
 	glm::vec3 e2 = c - a;
 	float u = glm::dot((_RayOrigin - a), (glm::cross(_RayDirection, e2))) / glm::dot(e1, (glm::cross(_RayDirection, e2)));
 	float v = glm::dot(_RayDirection,glm::cross((_RayOrigin - a), e1))/glm::dot(e1, glm::cross(_RayDirection, e2));
-	float DistToEntry = glm::dot(e2, glm::cross((_RayOrigin - a), e1)) / glm::dot(e1, glm::cross(_RayDirection, e2));
+	float DistToInt = glm::dot(e2, glm::cross((_RayOrigin - a), e1)) / glm::dot(e1, glm::cross(_RayDirection, e2));
 
 	if (u < 0 || u > 1) {
 		return false;
@@ -35,21 +35,20 @@ bool Triangle::CheckIntersection(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, 
 
 	float w = 1 - u - v;
 
-	glm::vec3 IntPoint = _RayDirection * DistToEntry;
-	//glm::vec3 Normal = glm::normalize(glm::cross(b-a,c-a));
+	glm::vec3 IntPoint = _RayOrigin + _RayDirection * DistToInt;
 	glm::vec3 Normal = w * n0 + u * n1 + v * n2;
 	Normal = glm::normalize(Normal);
 
-	DistToCamera = DistToEntry;
+	DistToCamera = DistToInt;
 
-	if (_HitInfo.Distance > DistToEntry ||
+	if (_HitInfo.Distance > DistToInt ||
 		_HitInfo.Distance == 0.0f) {
 		_HitInfo.AmbientC = AmbientC;
 		_HitInfo.DiffuseC = DiffuseC;
 		_HitInfo.SpecularC = SpecularC;
 		_HitInfo.Shininess = Shininess;
 
-		_HitInfo.Distance = DistToEntry;
+		_HitInfo.Distance = DistToInt;
 		_HitInfo.IntPoint = IntPoint;
 		_HitInfo.Normal = Normal;
 
