@@ -11,6 +11,8 @@
 #include <glm/matrix.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <chrono>
+
 #include "Sphere.h"
 #include "Plane.h"
 #include "Triangle.h"

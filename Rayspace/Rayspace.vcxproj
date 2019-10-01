@@ -138,7 +138,6 @@
     <ClCompile Include="Light.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="Object.cpp" />
     <ClCompile Include="objloader.cpp" />
     <ClCompile Include="Plane.cpp" />
     <ClCompile Include="Raytracer.cpp" />
@@ -153,7 +152,6 @@
     <ClInclude Include="HitInfo.h" />
     <ClInclude Include="Light.h" />
     <ClInclude Include="Mesh.h" />
-    <ClInclude Include="Object.h" />
     <ClInclude Include="objloader.h" />
     <ClInclude Include="Plane.h" />
     <ClInclude Include="Raytracer.h" />

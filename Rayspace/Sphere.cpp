@@ -18,7 +18,7 @@ Sphere::~Sphere() {
 bool Sphere::CheckIntersection(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, HitInfo& _HitInfo)
 {
 	if (BoundingBox->CheckIntersection(_RayOrigin, _RayDirection, _HitInfo)) {
-	//L
+		//L
 		glm::vec3 RelativePosToCam = Position - _RayOrigin;
 		//T_ca
 		float RayDirScalar = glm::dot(RelativePosToCam, _RayDirection);

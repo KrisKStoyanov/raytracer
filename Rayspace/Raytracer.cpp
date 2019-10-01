@@ -169,6 +169,8 @@ void Raytracer::Configure(std::vector<Shape*> _Shapes, Camera* _MainCamera, glm:
 
 void Raytracer::Render()
 {
+	auto StartTime = std::chrono::high_resolution_clock::now();
+
 	CR_ScreenSurface = SDL_GetWindowSurface(CR_MainWindow);
 	CR_ScreenAspectRatio = CR_ScreenSurface->w / CR_ScreenSurface->h;
 	CR_BufferSurface = SDL_CreateRGBSurface(0, CR_ScreenSurface->w, CR_ScreenSurface->h, 32, RMask, GMask, BMask, AMask);
@@ -256,6 +258,10 @@ void Raytracer::Render()
 		std::cout << "WARNING: Unable to render surface! " << std::endl;
 		CheckSDLError(__LINE__);
 	}
+
+	auto EndTime = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> elapsed_seconds = EndTime - StartTime;
+	std::cout << "Elapsed time: " << elapsed_seconds.count() << " seconds." << std::endl;
 }
 
 void Raytracer::Update()
