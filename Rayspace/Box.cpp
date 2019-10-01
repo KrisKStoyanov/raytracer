@@ -1,11 +1,9 @@
 #include "Box.h"
 
-Box::Box(glm::vec3 _PlaneMin, glm::vec3 _PlaneMax)
+Box::Box(glm::vec3 _MinPoint, glm::vec3 _MaxPoint)
 {
-	Type = BOX;
-
-	PlaneMin = _PlaneMin;
-	PlaneMax = _PlaneMax;
+	MinPoint = _MinPoint;
+	MaxPoint = _MaxPoint;
 }
 
 Box::~Box()
@@ -14,62 +12,58 @@ Box::~Box()
 
 bool Box::CheckIntersection(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, HitInfo& _HitInfo)
 {
-	float DistFront = PlaneMin.x - _RayOrigin.x / _RayDirection.x;
-	float DistBack = PlaneMax.x - _RayOrigin.x / _RayDirection.x;
+	float DistMinX, DistMaxX, DistMinY, DistMaxY, DistMinZ, DistMaxZ;
 
-	glm::vec3 IntPoint = _RayOrigin + _RayDirection * DistFront;
-
-	if (IntPoint.x > PlaneMin.x - 0.1f && IntPoint.x < PlaneMax.x + 0.1f &&
-		IntPoint.y > PlaneMin.y - 0.1f && IntPoint.y < PlaneMax.y + 0.1f &&
-		IntPoint.z > PlaneMin.z - 0.1f && IntPoint.z < PlaneMax.z + 0.1f) {
-		return true;
+	if (_RayDirection.x > 0) {
+		DistMinX = (MinPoint.x - _RayOrigin.x) / _RayDirection.x;
+		DistMaxX = (MaxPoint.x - _RayOrigin.x) / _RayDirection.x;
+	}
+	else {
+		DistMinX = (MaxPoint.x - _RayOrigin.x) / _RayDirection.x;
+		DistMaxX = (MinPoint.x - _RayOrigin.x) / _RayDirection.x;
 	}
 
-	IntPoint = _RayOrigin + _RayDirection * DistBack;
-
-	if (IntPoint.x > PlaneMin.x - 0.1f && IntPoint.x < PlaneMax.x + 0.1f &&
-		IntPoint.y > PlaneMin.y - 0.1f && IntPoint.y < PlaneMax.y + 0.1f &&
-		IntPoint.z > PlaneMin.z - 0.1f && IntPoint.z < PlaneMax.z + 0.1f) {
-		return true;
+	if (_RayDirection.y > 0) {
+		DistMinY = (MinPoint.y - _RayOrigin.y) / _RayDirection.y;
+		DistMaxY = (MaxPoint.y - _RayOrigin.y) / _RayDirection.y;
+	}
+	else {
+		DistMinY = (MaxPoint.y - _RayOrigin.y) / _RayDirection.y;
+		DistMaxY = (MinPoint.y - _RayOrigin.y) / _RayDirection.y;
 	}
 
-	DistFront = PlaneMin.y - _RayOrigin.y / _RayDirection.y;
-	DistBack = PlaneMax.y - _RayOrigin.y / _RayDirection.y;
-
-	IntPoint = _RayOrigin + _RayDirection * DistFront;
-
-	if (IntPoint.x > PlaneMin.x - 0.1f && IntPoint.x < PlaneMax.x + 0.1f &&
-		IntPoint.y > PlaneMin.y - 0.1f && IntPoint.y < PlaneMax.y + 0.1f &&
-		IntPoint.z > PlaneMin.z - 0.1f && IntPoint.z < PlaneMax.z + 0.1f) {
-		return true;
+	if ((DistMinX > DistMaxY) || (DistMinY > DistMaxX)) {
+		return false;
 	}
 
-	IntPoint = _RayOrigin + _RayDirection * DistBack;
-
-	if (IntPoint.x > PlaneMin.x - 0.1f && IntPoint.x < PlaneMax.x + 0.1f &&
-		IntPoint.y > PlaneMin.y - 0.1f && IntPoint.y < PlaneMax.y + 0.1f &&
-		IntPoint.z > PlaneMin.z - 0.1f && IntPoint.z < PlaneMax.z + 0.1f) {
-		return true;
+	if (DistMinY > DistMinX) {
+		DistMinX = DistMinY;
 	}
 
-	DistFront = PlaneMin.z - _RayOrigin.z / _RayDirection.z;
-	DistBack = PlaneMax.z - _RayOrigin.z / _RayDirection.z;
-
-	IntPoint = _RayOrigin + _RayDirection * DistFront;
-
-	if (IntPoint.x > PlaneMin.x - 0.1f && IntPoint.x < PlaneMax.x + 0.001f &&
-		IntPoint.y > PlaneMin.y - 0.1f && IntPoint.y < PlaneMax.y + 0.001f &&
-		IntPoint.z > PlaneMin.z - 0.1f && IntPoint.z < PlaneMax.z + 0.001f) {
-		return true;
+	if (DistMaxY < DistMaxX) {
+		DistMaxX = DistMaxY;
 	}
 
-	IntPoint = _RayOrigin + _RayDirection * DistBack;
-
-	if (IntPoint.x > PlaneMin.x - 0.1f && IntPoint.x < PlaneMax.x + 0.1f &&
-		IntPoint.y > PlaneMin.y - 0.1f && IntPoint.y < PlaneMax.y + 0.1f &&
-		IntPoint.z > PlaneMin.z - 0.1f && IntPoint.z < PlaneMax.z + 0.1f) {
-		return true;
+	if (_RayDirection.z > 0) {
+		DistMinZ = (MinPoint.z - _RayOrigin.z) / _RayDirection.z;
+		DistMaxZ = (MaxPoint.z - _RayOrigin.z) / _RayDirection.z;
+	}
+	else {
+		DistMinZ = (MaxPoint.z - _RayOrigin.z) / _RayDirection.z;
+		DistMaxZ = (MinPoint.z - _RayOrigin.z) / _RayDirection.z;
 	}
 
-	return false;
+	if ((DistMinX > DistMaxZ) || (DistMinZ > DistMaxX)) {
+		return false;
+	}
+
+	if (DistMinZ > DistMinX) {
+		DistMinX = DistMinZ;
+	}
+
+	if (DistMaxZ < DistMaxX) {
+		DistMaxX = DistMaxZ;
+	}
+
+	return true;
 }

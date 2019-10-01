@@ -8,7 +8,6 @@ class Shape
 public:
 	Shape();
 	~Shape();
-	ShapeType Type;
 	virtual bool CheckIntersection(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, HitInfo& _HitInfo) = 0;
 };
 

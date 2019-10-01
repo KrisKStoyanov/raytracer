@@ -2,8 +2,6 @@
 
 Plane::Plane(glm::vec3 _pos, glm::vec3 _normal, glm::vec3 _AmbientC, glm::vec3 _DiffuseC, glm::vec3 _SpecularC, float _Shininess)
 {
-	Type = PLANE;
-
 	Position = _pos;
 	Normal = _normal;
 	AmbientC = _AmbientC;
@@ -43,8 +41,6 @@ bool Plane::CheckIntersection(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, Hit
 		_HitInfo.IntPoint = IntPoint;
 		_HitInfo.Normal = Normal;
 		_HitInfo.ExitPoint = ExitPoint;
-
-		_HitInfo.Type = Type;
 
 		_HitInfo.HitStatus = true;
 	}
