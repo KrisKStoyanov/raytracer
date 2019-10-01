@@ -37,6 +37,7 @@ bool Sphere::CheckIntersection(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, Hi
 
 	glm::vec3 IntPoint = _RayOrigin + DistToEntry * _RayDirection;
 	glm::vec3 Normal = glm::normalize(IntPoint - Position);
+	glm::vec3 ExitPoint = IntPoint + Normal;
 
 	if (_HitInfo.Distance > DistToEntry ||
 		_HitInfo.Distance == 0.0f) {
@@ -48,6 +49,7 @@ bool Sphere::CheckIntersection(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, Hi
 		_HitInfo.Distance = DistToEntry;
 		_HitInfo.IntPoint = IntPoint;
 		_HitInfo.Normal = Normal;
+		_HitInfo.ExitPoint = ExitPoint;
 
 		_HitInfo.HitStatus = true;
 	}

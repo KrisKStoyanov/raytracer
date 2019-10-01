@@ -28,6 +28,7 @@ bool Plane::CheckIntersection(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, Hit
 	}
 
 	glm::vec3 IntPoint = _RayOrigin + _RayDirection * DistToInt;
+	glm::vec3 ExitPoint = IntPoint + Normal;
 
 	if (_HitInfo.Distance > DistToInt ||
 		_HitInfo.Distance == 0.0f) {
@@ -39,6 +40,7 @@ bool Plane::CheckIntersection(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, Hit
 		_HitInfo.Distance = DistToInt;
 		_HitInfo.IntPoint = IntPoint;
 		_HitInfo.Normal = Normal;
+		_HitInfo.ExitPoint = ExitPoint;
 
 		_HitInfo.HitStatus = true;
 	}

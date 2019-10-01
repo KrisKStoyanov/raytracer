@@ -38,6 +38,7 @@ bool Triangle::CheckIntersection(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, 
 	glm::vec3 IntPoint = _RayOrigin + _RayDirection * DistToInt;
 	glm::vec3 Normal = w * n0 + u * n1 + v * n2;
 	Normal = glm::normalize(Normal);
+	glm::vec3 ExitPoint = IntPoint + Normal;
 
 	DistToCamera = DistToInt;
 
@@ -51,6 +52,7 @@ bool Triangle::CheckIntersection(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, 
 		_HitInfo.Distance = DistToInt;
 		_HitInfo.IntPoint = IntPoint;
 		_HitInfo.Normal = Normal;
+		_HitInfo.ExitPoint = ExitPoint;
 
 		_HitInfo.HitStatus = true;
 	}

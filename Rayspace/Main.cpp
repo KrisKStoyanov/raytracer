@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
 	//delete Polygon;
 
 	Camera* MainCamera = new Camera(glm::vec3(0, 0, 5), glm::vec3(0, 0, -1), 1.0f, 0.25f);
-	Light* PointLight = new Light(glm::vec3(0, 3, 1), glm::vec3(1.0f, 1.0f, 1.0f));
+	Light* PointLight = new Light(glm::vec3(0, 2, 1), glm::vec3(1.0f, 1.0f, 1.0f));
 	glm::vec3 AmbientLightC = glm::vec3(0.1f, 0.1f, 0.1f);
 	
 	if (RTracer.Init("Rayspace", 800, 600, SDL_RENDERER_ACCELERATED)) {

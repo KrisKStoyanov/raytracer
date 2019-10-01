@@ -207,6 +207,7 @@ void Raytracer::Render()
 
 				for (int i = 0; i < CR_Shapes.size(); ++i) {
 					CR_Shapes[i]->CheckIntersection(CR_MainCamera->Position, RayDirection, PrimaryRayHit);
+					
 				}
 				if (!PrimaryRayHit.HitStatus) {
 					ColorBitValue = SDL_MapRGB(CR_BufferSurface->format, 182, 230, 250);
@@ -214,6 +215,9 @@ void Raytracer::Render()
 				else {
 					glm::vec3 LightDir = glm::normalize(CR_PointLight->Position - PrimaryRayHit.IntPoint);
 					glm::vec3 RevLightDir = glm::normalize(PrimaryRayHit.IntPoint - CR_PointLight->Position);
+					for (int i = 0; i < CR_Shapes.size(); ++i) {
+						CR_Shapes[i]->CheckIntersection(PrimaryRayHit.IntPoint, LightDir, LightRayHit);
+					}
 					float DiffuseScalar = glm::dot(LightDir, PrimaryRayHit.Normal);
 					glm::vec3 AmbientColor = PrimaryRayHit.AmbientC * CR_AmbientLight;
 					glm::vec3 DiffuseColor = PrimaryRayHit.DiffuseC * CR_PointLight->ColorIntensity * glm::max(0.0f, DiffuseScalar);
@@ -225,7 +229,11 @@ void Raytracer::Render()
 					glm::vec3 SpecularColor = PrimaryRayHit.SpecularC * CR_PointLight->ColorIntensity * glm::pow(glm::max(0.0f, SpecularScalar), PrimaryRayHit.Shininess);
 
 					glm::vec3 FinalColor = AmbientColor + DiffuseColor + SpecularColor;
-					
+
+					if (LightRayHit.HitStatus && LightRayHit.Distance < glm::length(CR_PointLight->Position - PrimaryRayHit.IntPoint)) {
+						FinalColor = AmbientColor;
+					}
+
 					ColorBitValue = SDL_MapRGB(CR_BufferSurface->format, glm::clamp(FinalColor.r * 255, 0.0f, 255.0f), glm::clamp(FinalColor.g * 255, 0.0f, 255.0f), glm::clamp(FinalColor.b * 255, 0.0f, 255.0f));
 				}
 				PixelAddress[LineOffset + x] = ColorBitValue;

@@ -25,6 +25,7 @@ public:
 	glm::vec3 Position;
 	glm::vec3 IntPoint;
 	glm::vec3 Normal;
+	glm::vec3 ExitPoint;
 
 	float Distance = 0.0f;
 	bool HitStatus = false;\
