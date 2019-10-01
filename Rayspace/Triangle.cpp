@@ -54,6 +54,8 @@ bool Triangle::CheckIntersection(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, 
 		_HitInfo.Normal = Normal;
 		_HitInfo.ExitPoint = ExitPoint;
 
+		_HitInfo.Type = Type;
+
 		_HitInfo.HitStatus = true;
 	}
 	return true;

@@ -1,5 +1,7 @@
 #include "Sphere.h"
 Sphere::Sphere(glm::vec3 _pos, float _radius, glm::vec3 _ambientC, glm::vec3 _diffuseC, glm::vec3 _specularC, float _shininess) {
+	Type = SPHERE;
+	
 	Position = _pos;
 	Radius = _radius;
 
@@ -7,6 +9,8 @@ Sphere::Sphere(glm::vec3 _pos, float _radius, glm::vec3 _ambientC, glm::vec3 _di
 	DiffuseC = _diffuseC;
 	SpecularC = _specularC;
 	Shininess = _shininess;
+
+	BoundingBox = new Box(glm::vec3(Position.x - Radius, Position.y - Radius, Position.z - Radius), glm::vec3(Position.x + Radius, Position.y + Radius, Position.z + Radius));
 }
 
 Sphere::~Sphere() {
@@ -50,6 +54,8 @@ bool Sphere::CheckIntersection(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, Hi
 		_HitInfo.IntPoint = IntPoint;
 		_HitInfo.Normal = Normal;
 		_HitInfo.ExitPoint = ExitPoint;
+
+		_HitInfo.Type = Type;
 
 		_HitInfo.HitStatus = true;
 	}

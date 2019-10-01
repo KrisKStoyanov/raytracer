@@ -13,7 +13,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Triangle.h"
-#include "Vertex.h"
+#include "Box.h"
 
 class Mesh : public Shape
 {
@@ -26,5 +26,7 @@ public:
 
 	std::vector<Triangle*> TriangleCollection;
 	std::vector<glm::vec3> NormalCollection;
+
+	Box* BoundingBox = NULL;
 };
 

@@ -11,6 +11,14 @@
 #include <glm/matrix.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+enum ShapeType {
+	BOX,
+	SPHERE,
+	PLANE,
+	MESH
+};
+
+
 class HitInfo
 {
 public:
@@ -27,7 +35,9 @@ public:
 	glm::vec3 Normal;
 	glm::vec3 ExitPoint;
 
+	ShapeType Type;
+
 	float Distance = 0.0f;
-	bool HitStatus = false;\
+	bool HitStatus = false;
 };
 

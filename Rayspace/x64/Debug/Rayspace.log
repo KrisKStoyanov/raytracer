@@ -1,4 +1,5 @@
-﻿  Raytracer.cpp
+﻿  Main.cpp
+  Raytracer.cpp
 C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(23,40): warning C4244:  '=': conversion from 'unsigned int' to 'float', possible loss of data
 C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(111,20): warning C4018:  '<': signed/unsigned mismatch
 C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(112,21): warning C4018:  '<': signed/unsigned mismatch
@@ -18,6 +19,7 @@ C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(237,115): war
 C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(237,115): warning C4244:         [
 C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(237,115): warning C4244:             genType=float
 C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(237,115): warning C4244:         ]
+  Generating Code...
 C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(237,69): warning C4244:  'argument': conversion from 'genType' to 'Uint8', possible loss of data
 C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(237,69): warning C4244:         with
 C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(237,69): warning C4244:         [

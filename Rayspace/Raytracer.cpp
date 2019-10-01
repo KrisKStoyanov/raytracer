@@ -180,7 +180,7 @@ void Raytracer::Render()
 		}
 
 		int OffsetMod = CR_BufferSurface->pitch * 0.25f;
-		float FOV_Angle = glm::tan(glm::radians((float)90 / 2));
+		float FOV_Angle = glm::tan(glm::radians((float)90 * 0.5f));
 		for (int y = 0; y < CR_ScreenSurface->h; ++y) {
 
 			int LineOffset = y * OffsetMod;
@@ -203,7 +203,6 @@ void Raytracer::Render()
 
 				Uint32 ColorBitValue = 0;
 				HitInfo PrimaryRayHit;
-				HitInfo LightRayHit;
 
 				for (int i = 0; i < CR_Shapes.size(); ++i) {
 					CR_Shapes[i]->CheckIntersection(CR_MainCamera->Position, RayDirection, PrimaryRayHit);
@@ -213,24 +212,23 @@ void Raytracer::Render()
 					ColorBitValue = SDL_MapRGB(CR_BufferSurface->format, 182, 230, 250);
 				}
 				else {
-					glm::vec3 LightDir = glm::normalize(CR_PointLight->Position - PrimaryRayHit.IntPoint);
-					glm::vec3 RevLightDir = glm::normalize(PrimaryRayHit.IntPoint - CR_PointLight->Position);
-					for (int i = 0; i < CR_Shapes.size(); ++i) {
+					HitInfo LightRayHit;
+					glm::vec3 LightDirFull = CR_PointLight->Position - PrimaryRayHit.IntPoint;
+					glm::vec3 LightDir = glm::normalize(LightDirFull);
+					for (int i = 0; i < CR_Shapes.size(); ++i) {			
 						CR_Shapes[i]->CheckIntersection(PrimaryRayHit.IntPoint, LightDir, LightRayHit);
 					}
+
 					float DiffuseScalar = glm::dot(LightDir, PrimaryRayHit.Normal);
 					glm::vec3 AmbientColor = PrimaryRayHit.AmbientC * CR_AmbientLight;
-					glm::vec3 DiffuseColor = PrimaryRayHit.DiffuseC * CR_PointLight->ColorIntensity * glm::max(0.0f, DiffuseScalar);
-					
-					//glm::vec3 LightReflDir = glm::normalize(2 * glm::dot(RevLightDir, PrimaryRayHit.Normal) * PrimaryRayHit.Normal - RevLightDir);
-					//glm::vec3 LRD = glm::normalize(glm::reflect(LightDir, PrimaryRayHit.Normal));
-					glm::vec3 LightReflDir = glm::normalize(2 * -DiffuseScalar * PrimaryRayHit.Normal - RevLightDir);
+					glm::vec3 DiffuseColor = PrimaryRayHit.DiffuseC * CR_PointLight->ColorIntensity * glm::max(0.0f, DiffuseScalar);				
+					glm::vec3 LightReflDir = glm::normalize(2 * -DiffuseScalar * PrimaryRayHit.Normal + LightDir);
 					float SpecularScalar = glm::dot(LightReflDir, RayDirection);	
 					glm::vec3 SpecularColor = PrimaryRayHit.SpecularC * CR_PointLight->ColorIntensity * glm::pow(glm::max(0.0f, SpecularScalar), PrimaryRayHit.Shininess);
 
 					glm::vec3 FinalColor = AmbientColor + DiffuseColor + SpecularColor;
 
-					if (LightRayHit.HitStatus && LightRayHit.Distance < glm::length(CR_PointLight->Position - PrimaryRayHit.IntPoint)) {
+					if (LightRayHit.HitStatus && LightRayHit.Distance > 0 && LightRayHit.Distance < glm::length(LightDirFull)) {
 						FinalColor = AmbientColor;
 					}
 

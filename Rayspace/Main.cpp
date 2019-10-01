@@ -15,6 +15,7 @@
 #include "Raytracer.h"
 #include "Camera.h"
 #include "Mesh.h"
+#include "Object.h"
 
 //const unsigned int SCREEN_WIDTH = 800;
 //const unsigned int SCREEN_HEIGHT = 600;
@@ -52,14 +53,14 @@ int main(int argc, char* argv[]) {
 	//	glm::vec3(0.0f, 0.6f, 1.0f), glm::vec3(-0.4f,-0.4f,1.0f),glm::vec3(0.4f,-0.4f,1.0f),
 	//	glm::vec3(1.0, 1.0f, 0.0f), glm::vec3(0.5f, 0.5f, 0.0f), glm::vec3(0.7f, 0.7f, 0.7f), 100);
 
-	std::vector<Shape*> Shapes;
+ 	std::vector<Shape*> Shapes;
 	Shapes.push_back(RedSphere);
 	Shapes.push_back(YellowSphere);
 	Shapes.push_back(LightBlueSphere);
 	Shapes.push_back(LightGreySphere);
 	Shapes.push_back(Floor);
 	//Shapes.push_back(CubeModelMesh);
-	//Shapes.push_back(TeapotModelMesh);
+	Shapes.push_back(TeapotModelMesh);
 
 	//Shapes.push_back(Polygon);
 
@@ -72,7 +73,7 @@ int main(int argc, char* argv[]) {
 	//delete Polygon;
 
 	Camera* MainCamera = new Camera(glm::vec3(0, 0, 5), glm::vec3(0, 0, -1), 1.0f, 0.25f);
-	Light* PointLight = new Light(glm::vec3(0, 2, 1), glm::vec3(1.0f, 1.0f, 1.0f));
+	Light* PointLight = new Light(glm::vec3(0, 2, 10), glm::vec3(1.0f, 1.0f, 1.0f));
 	glm::vec3 AmbientLightC = glm::vec3(0.1f, 0.1f, 0.1f);
 	
 	if (RTracer.Init("Rayspace", 800, 600, SDL_RENDERER_ACCELERATED)) {
