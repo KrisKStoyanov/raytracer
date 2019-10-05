@@ -60,8 +60,8 @@ int main(int argc, char* argv[]) {
  	std::vector<Shape*> Shapes;
 	Shapes.push_back(RedSphere);
 	Shapes.push_back(YellowSphere);
-	//Shapes.push_back(LightBlueSphere);
-	//Shapes.push_back(LightGreySphere);
+	Shapes.push_back(LightBlueSphere);
+	Shapes.push_back(LightGreySphere);
 	Shapes.push_back(Floor);
 	//Shapes.push_back(CubeModelMesh);
 	//Shapes.push_back(TeapotModelMesh);
@@ -77,8 +77,8 @@ int main(int argc, char* argv[]) {
 	//delete Floor;
 	//delete Polygon;
 
-	Camera* MainCamera = new Camera(glm::vec3(2, 0, -5), glm::vec3(0, 0, -1), 1.0f, 0.25f);
-	Light* PointL = new Light(glm::vec3(0, 20, 10), glm::vec3(0.5f, 0.5f, 0.5f));
+	Camera* MainCamera = new Camera(glm::vec3(0, 0, 5), glm::vec3(0, 0, -1), 1.0f, 0.25f);
+	Light* PointL = new Light(glm::vec3(0, 20, 10), glm::vec3(1.0f, 1.0f, 1.0f));
 	AreaLight* AreaL = new AreaLight(glm::vec3(-4.5f, 20.0f, -4.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(9.0f, 0.1f, 9.0f));
 	
 	if (RTracer.Init("Rayspace", 800, 600, SDL_RENDERER_ACCELERATED)) {

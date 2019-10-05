@@ -197,7 +197,6 @@ glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, Hit
 				CombinedColor = AmbientColor;
 			}
 		}
-
 		if (_CurrentDepth < _MaxDepth) {
 			HitInfo ReflRayHit;
 			return CombinedColor + _Hit.SpecularC * Raytrace(_Hit.ReflRayOrigin, _Hit.ReflRayDir, ReflRayHit, _CurrentDepth += 1, _MaxDepth);
@@ -220,7 +219,6 @@ void Raytracer::Render()
 		if (SDL_MUSTLOCK(CR_BufferSurface)) {
 			SDL_LockSurface(CR_BufferSurface);
 		}
-
 		int OffsetMod = CR_BufferSurface->pitch * 0.25f;
 		float FOV_Angle = glm::tan(glm::radians((float)90 * 0.5f));
 		for (int y = 0; y < CR_ScreenSurface->h; ++y) {
@@ -247,7 +245,7 @@ void Raytracer::Render()
 				HitInfo Hit;
 				glm::vec3 CombinedColor = Raytrace(CR_MainCamera->Position, RayDirection, Hit, 1, 1);
 				if (CR_Effects_Reflections && Hit.SpecularC != glm::vec3(0.0f,0.0f,0.0f)) {
-					CombinedColor = CombinedColor + Hit.SpecularC * Raytrace(Hit.ReflRayOrigin, Hit.ReflRayDir, Hit, 1, 4);
+					CombinedColor += Hit.SpecularC * Raytrace(Hit.ReflRayOrigin, Hit.ReflRayDir, Hit, 1, 2);
 				}
 				ColorBitValue = SDL_MapRGB(CR_BufferSurface->format, glm::clamp(CombinedColor.r * 255, 0.0f, 255.0f), glm::clamp(CombinedColor.g * 255, 0.0f, 255.0f), glm::clamp(CombinedColor.b * 255, 0.0f, 255.0f));
 				PixelAddress[LineOffset + x] = ColorBitValue;
