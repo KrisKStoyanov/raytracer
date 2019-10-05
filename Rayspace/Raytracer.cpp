@@ -200,7 +200,7 @@ glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, Hit
 
 		if (_CurrentDepth < _MaxDepth) {
 			HitInfo ReflRayHit;
-			return CombinedColor += _Hit.SpecularC * Raytrace(_Hit.ReflRayOrigin, _Hit.ReflRayDir, ReflRayHit, _CurrentDepth += 1, _MaxDepth);
+			return CombinedColor + _Hit.SpecularC * Raytrace(_Hit.ReflRayOrigin, _Hit.ReflRayDir, ReflRayHit, _CurrentDepth += 1, _MaxDepth);
 		}
 	}
 	
@@ -246,8 +246,10 @@ void Raytracer::Render()
 				Uint32 ColorBitValue = 0;
 				HitInfo Hit;
 				glm::vec3 CombinedColor = Raytrace(CR_MainCamera->Position, RayDirection, Hit, 1, 1);
-				glm::vec3 ReflColor = Raytrace(Hit.ReflRayOrigin, Hit.ReflRayDir, Hit, 1, 4);
-				CombinedColor = CombinedColor * ReflColor;	
+				if (CR_Effects_Reflections) {
+					glm::vec3 ReflColor = Raytrace(Hit.ReflRayOrigin, Hit.ReflRayDir, Hit, 1, 4);
+					CombinedColor = ReflColor;
+				}
 				ColorBitValue = SDL_MapRGB(CR_BufferSurface->format, glm::clamp(CombinedColor.r * 255, 0.0f, 255.0f), glm::clamp(CombinedColor.g * 255, 0.0f, 255.0f), glm::clamp(CombinedColor.b * 255, 0.0f, 255.0f));
 				PixelAddress[LineOffset + x] = ColorBitValue;
 			}
@@ -332,8 +334,8 @@ void Raytracer::Update()
 					break;
 				case SDLK_2:
 					std::cout << "Hotkey Pressed: [2]" << std::endl;
-					ToggleShadows();
-					std::cout << "Reflections: " << CR_Effects_Shadows << std::endl;
+					ToggleReflections();
+					std::cout << "Reflections: " << CR_Effects_Reflections << std::endl;
 					break;
 				default:
 					break;
