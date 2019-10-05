@@ -6,6 +6,7 @@ class Plane : public Shape
 public:
 	glm::vec3 Position;
 	glm::vec3 Normal;
+	//Surface Color:
 	glm::vec3 AmbientC;
 	glm::vec3 DiffuseC;
 	glm::vec3 SpecularC;

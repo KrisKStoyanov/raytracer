@@ -20,6 +20,7 @@ public:
 	glm::vec3 n1;
 	glm::vec3 n2;
 
+	//Surface Color:
 	glm::vec3 AmbientC;
 	glm::vec3 DiffuseC;
 	glm::vec3 SpecularC;

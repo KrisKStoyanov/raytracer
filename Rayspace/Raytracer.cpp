@@ -246,9 +246,8 @@ void Raytracer::Render()
 				Uint32 ColorBitValue = 0;
 				HitInfo Hit;
 				glm::vec3 CombinedColor = Raytrace(CR_MainCamera->Position, RayDirection, Hit, 1, 1);
-				if (CR_Effects_Reflections) {
-					glm::vec3 ReflColor = Raytrace(Hit.ReflRayOrigin, Hit.ReflRayDir, Hit, 1, 4);
-					CombinedColor = ReflColor;
+				if (CR_Effects_Reflections && Hit.SpecularC != glm::vec3(0.0f,0.0f,0.0f)) {
+					CombinedColor = CombinedColor + Hit.SpecularC * Raytrace(Hit.ReflRayOrigin, Hit.ReflRayDir, Hit, 1, 4);
 				}
 				ColorBitValue = SDL_MapRGB(CR_BufferSurface->format, glm::clamp(CombinedColor.r * 255, 0.0f, 255.0f), glm::clamp(CombinedColor.g * 255, 0.0f, 255.0f), glm::clamp(CombinedColor.b * 255, 0.0f, 255.0f));
 				PixelAddress[LineOffset + x] = ColorBitValue;
