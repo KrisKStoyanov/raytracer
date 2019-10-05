@@ -22,11 +22,18 @@
 #include "Mesh.h"
 #include "HitInfo.h"
 #include "Light.h"
+#include "AreaLight.h"
 
 enum LocalState {
 	STARTING,
 	ACTIVE,
 	INACTIVE
+};
+
+enum Effect {
+	LIGHTING,
+	SHADOWS,
+	REFLECTIONS
 };
 
 class Raytracer
@@ -39,7 +46,7 @@ public:
 	void Start();
 	void PrintOGLVersion();
 	void CheckSDLError(int line);
-	void Configure(std::vector<Shape*> _Shapes, Camera* _MainCamera, glm::vec3 _AmbientLight, Light* _PointLight);
+	void Configure(std::vector<Shape*> _Shapes, Camera* _MainCamera, glm::vec3 _AmbientLight, Light* _PointLight, AreaLight* _AreaLight);
 	void Render();
 	void Update();
 	void Deactivate();
@@ -52,9 +59,10 @@ public:
 
 	uint32_t RMask, GMask, BMask, AMask;
 
-	glm::vec3 CR_AmbientLight;
+	glm::vec3 CR_AmbientColor;
 	
 	Light* CR_PointLight = NULL;
+	AreaLight* CR_AreaLight = NULL;
 
 	std::vector<Shape*> CR_Shapes;
 
@@ -69,7 +77,15 @@ public:
 
 	float CR_ScreenAspectRatio;
 
+	glm::vec3 Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, HitInfo& _HitInfo, int _CurrentDepth, int _MaxDepth);
+
 	bool WriteImageToFile(std::vector<Shape*> _Shapes);
+
+	bool CR_Effects_Shadows = true;
+	bool CR_Effects_Reflections = true;
+
+	void ToggleShadows();
+	void ToggleReflections();
 
 	SDL_Surface* LoadSurface(std::string _ImageFilePath);
 

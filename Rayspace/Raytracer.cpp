@@ -110,7 +110,7 @@ bool Raytracer::WriteImageToFile(std::vector<Shape*> _Shapes) {
 	ofs << "P6\n" << CR_WindowWidth << " " << CR_WindowHeight << "\n255\n";
 	for (int y = 0; y < CR_WindowHeight; ++y) {
 		for (int x = 0; x < CR_WindowWidth; ++x) {
-			
+
 			float PixelNormalizedx = (x + 0.5) / CR_WindowWidth;
 			float PixelNormalizedy = (y + 0.5) / CR_WindowHeight;
 
@@ -146,25 +146,65 @@ bool Raytracer::WriteImageToFile(std::vector<Shape*> _Shapes) {
 					(unsigned char)(250);
 			}
 			else {
-				ofs << (unsigned char)((AmbientC.r * 255) * CR_AmbientLight.r) <<
-					(unsigned char)((AmbientC.g * 255) * CR_AmbientLight.g) <<
-					(unsigned char)((AmbientC.b * 255) * CR_AmbientLight.b);
+				ofs << (unsigned char)((AmbientC.r * 255) * CR_AmbientColor.r) <<
+					(unsigned char)((AmbientC.g * 255) * CR_AmbientColor.g) <<
+					(unsigned char)((AmbientC.b * 255) * CR_AmbientColor.b);
 			}
 		}
 	}
 	ofs.close();
-	
+
 	return true;
 }
 
-void Raytracer::Configure(std::vector<Shape*> _Shapes, Camera* _MainCamera, glm::vec3 _AmbientLight, Light* _PointLight)
+void Raytracer::Configure(std::vector<Shape*> _Shapes, Camera* _MainCamera, glm::vec3 _AmbientLight, Light* _PointLight, AreaLight* _AreaLight)
 {
 	CR_Shapes = _Shapes;
 	CR_MainCamera = _MainCamera;
-	CR_AmbientLight = _AmbientLight;
+	CR_AmbientColor = _AmbientLight;
 	CR_PointLight = _PointLight;
+	CR_AreaLight = _AreaLight;
 
 	Render();
+}
+
+glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, HitInfo& _Hit, int _CurrentDepth, int _MaxDepth)
+{
+	glm::vec3 CombinedColor = CR_AmbientColor;
+	for (int i = 0; i < CR_Shapes.size(); ++i) {
+		CR_Shapes[i]->CheckIntersection(_RayOrigin, _RayDirection, _Hit);
+	}
+
+	if (_Hit.HitStatus) {
+		glm::vec3 AmbientColor = _Hit.AmbientC * CR_AmbientColor;
+		glm::vec3 LightDirFull = CR_PointLight->Position - _Hit.IntPoint;
+		glm::vec3 LightDir = glm::normalize(LightDirFull);
+
+		float DiffuseScalar = glm::dot(LightDir, _Hit.Normal);
+		glm::vec3 DiffuseColor = _Hit.DiffuseC * CR_PointLight->ColorIntensity * glm::max(0.0f, DiffuseScalar);
+		glm::vec3 LightReflDir = glm::normalize(2 * -DiffuseScalar * _Hit.Normal + LightDir);
+		float SpecularScalar = glm::dot(LightReflDir, _RayDirection);
+		glm::vec3 SpecularColor = _Hit.SpecularC * CR_PointLight->ColorIntensity * glm::pow(glm::max(0.0f, SpecularScalar), _Hit.Shininess);
+		CombinedColor = AmbientColor + DiffuseColor + SpecularColor;
+
+		if (CR_Effects_Shadows) {
+			HitInfo LightRayHit;
+			for (int i = 0; i < CR_Shapes.size(); ++i) {
+				CR_Shapes[i]->CheckIntersection(_Hit.IntPoint, LightDir, LightRayHit);
+			}
+
+			if (LightRayHit.HitStatus && LightRayHit.Distance > 0 && LightRayHit.Distance < glm::length(LightDirFull)) {
+				CombinedColor = AmbientColor;
+			}
+		}
+
+		if (_CurrentDepth < _MaxDepth) {
+			HitInfo ReflRayHit;
+			return Raytrace(_Hit.ReflRayOrigin, _Hit.ReflRayDir, ReflRayHit, _CurrentDepth += 1, _MaxDepth);
+		}
+	}
+	
+	return CombinedColor;
 }
 
 void Raytracer::Render()
@@ -204,38 +244,12 @@ void Raytracer::Render()
 				glm::vec3 RayDirection = glm::normalize(PixelCameraSpacePos - CR_MainCamera->Position);
 
 				Uint32 ColorBitValue = 0;
-				HitInfo PrimaryRayHit;
-
-				for (int i = 0; i < CR_Shapes.size(); ++i) {
-					CR_Shapes[i]->CheckIntersection(CR_MainCamera->Position, RayDirection, PrimaryRayHit);
-					
-				}
-				if (!PrimaryRayHit.HitStatus) {
-					ColorBitValue = SDL_MapRGB(CR_BufferSurface->format, 182, 230, 250);
-				}
-				else {
-					HitInfo LightRayHit;
-					glm::vec3 LightDirFull = CR_PointLight->Position - PrimaryRayHit.IntPoint;
-					glm::vec3 LightDir = glm::normalize(LightDirFull);
-					for (int i = 0; i < CR_Shapes.size(); ++i) {			
-						CR_Shapes[i]->CheckIntersection(PrimaryRayHit.IntPoint, LightDir, LightRayHit);
-					}
-
-					float DiffuseScalar = glm::dot(LightDir, PrimaryRayHit.Normal);
-					glm::vec3 AmbientColor = PrimaryRayHit.AmbientC * CR_AmbientLight;
-					glm::vec3 DiffuseColor = PrimaryRayHit.DiffuseC * CR_PointLight->ColorIntensity * glm::max(0.0f, DiffuseScalar);				
-					glm::vec3 LightReflDir = glm::normalize(2 * -DiffuseScalar * PrimaryRayHit.Normal + LightDir);
-					float SpecularScalar = glm::dot(LightReflDir, RayDirection);	
-					glm::vec3 SpecularColor = PrimaryRayHit.SpecularC * CR_PointLight->ColorIntensity * glm::pow(glm::max(0.0f, SpecularScalar), PrimaryRayHit.Shininess);
-
-					glm::vec3 FinalColor = AmbientColor + DiffuseColor + SpecularColor;
-
-					if (LightRayHit.HitStatus && LightRayHit.Distance > 0 && LightRayHit.Distance < glm::length(LightDirFull)) {
-						FinalColor = AmbientColor;
-					}
-
-					ColorBitValue = SDL_MapRGB(CR_BufferSurface->format, glm::clamp(FinalColor.r * 255, 0.0f, 255.0f), glm::clamp(FinalColor.g * 255, 0.0f, 255.0f), glm::clamp(FinalColor.b * 255, 0.0f, 255.0f));
-				}
+				HitInfo Hit;
+				glm::vec3 CombinedColor = Raytrace(CR_MainCamera->Position, RayDirection, Hit, 1, 1);	
+				glm::vec3 ReflColor;
+				ReflColor = CombinedColor + Hit.SpecularC * Raytrace(Hit.ReflRayOrigin, Hit.ReflRayDir, Hit, 1, 2);
+				CombinedColor = ReflColor;	
+				ColorBitValue = SDL_MapRGB(CR_BufferSurface->format, glm::clamp(CombinedColor.r * 255, 0.0f, 255.0f), glm::clamp(CombinedColor.g * 255, 0.0f, 255.0f), glm::clamp(CombinedColor.b * 255, 0.0f, 255.0f));
 				PixelAddress[LineOffset + x] = ColorBitValue;
 			}
 		}
@@ -289,27 +303,38 @@ void Raytracer::Update()
 			if (CurrentEvent.type == SDL_KEYDOWN) {
 				switch (CurrentEvent.key.keysym.sym) {
 				case SDLK_ESCAPE:
+					std::cout << "Hotkey Pressed: [ESC]" << std::endl;
 					CR_CurrentState = INACTIVE;
 					break;
 				case SDLK_w:
-					CR_MainCamera->Position.z -= 1.0f;
+					CR_MainCamera->Position.z -= 1.0f;			
+					std::cout << "Hotkey Pressed: [W]" << std::endl;
 					Render();
-					std::cout << "W" << std::endl;
 					break;
 				case SDLK_a:
 					CR_MainCamera->Position.x -=  1.0f;
-					Render();
-					std::cout << "A" << std::endl;
+					std::cout << "Hotkey Pressed: [A]" << std::endl;
+					Render();	
 					break;
 				case SDLK_d:
 					CR_MainCamera->Position.x += 1.0f;
+					std::cout << "Hotkey Pressed: [D]" << std::endl;
 					Render();
-					std::cout << "D" << std::endl;
 					break;
 				case SDLK_s:
 					CR_MainCamera->Position.z += 1.0f;
+					std::cout << "Hotkey Pressed: [S]" << std::endl;
 					Render();
-					std::cout << "S" << std::endl;
+					break;
+				case SDLK_1:
+					std::cout << "Hotkey Pressed: [1]" << std::endl;
+					ToggleShadows();
+					std::cout << "Shadows: " << CR_Effects_Shadows << std::endl;
+					break;
+				case SDLK_2:
+					std::cout << "Hotkey Pressed: [2]" << std::endl;
+					ToggleShadows();
+					std::cout << "Reflections: " << CR_Effects_Shadows << std::endl;
 					break;
 				default:
 					break;
@@ -320,9 +345,19 @@ void Raytracer::Update()
 		//glClear(GL_COLOR_BUFFER_BIT);
 		//SDL_GL_SwapWindow(CR_MainWindow);
 		SDL_UpdateWindowSurface(CR_MainWindow);
-		
-		/*std::cout << "FPS: " << GetFPS() << std::endl;*/
 	}
+}
+
+void Raytracer::ToggleShadows()
+{
+	CR_Effects_Shadows = !CR_Effects_Shadows;
+	Render();
+}
+
+void Raytracer::ToggleReflections()
+{
+	CR_Effects_Reflections = !CR_Effects_Reflections;
+	Render();
 }
 
 void Raytracer::Deactivate()

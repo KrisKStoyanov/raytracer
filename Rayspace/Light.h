@@ -19,6 +19,5 @@ public:
 
 	glm::vec3 Position;
 	glm::vec3 ColorIntensity = glm::vec3(1.0f, 1.0f, 1.0f);
-
 };
 

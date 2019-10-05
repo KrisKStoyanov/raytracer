@@ -27,6 +27,9 @@ public:
 	glm::vec3 Normal;
 	glm::vec3 ExitPoint;
 
+	glm::vec3 ReflRayOrigin;
+	glm::vec3 ReflRayDir;
+
 	float Distance = 0.0f;
 	bool HitStatus = false;
 };

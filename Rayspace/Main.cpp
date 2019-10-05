@@ -36,11 +36,16 @@ int main(int argc, char* argv[]) {
 	std::vector<glm::vec3> CubeMeshVertices;
 	std::vector<glm::vec3> CubeMeshNormals;
 
+	std::vector<glm::vec3> CustomMeshVertices;
+	std::vector<glm::vec3> CustomMeshNormals;
+
 	loadOBJ("../teapot_simple_smooth.obj", TeapotMeshVertices, TeapotMeshNormals);
-	loadOBJ("../cube_simple.obj", CubeMeshVertices, CubeMeshNormals);
+	//loadOBJ("../cube_simple.obj", CubeMeshVertices, CubeMeshNormals);
+	//loadOBJ("../character_basic.obj", CustomMeshVertices, CustomMeshNormals);
 
 	Mesh* TeapotModelMesh = new Mesh(TeapotMeshVertices, TeapotMeshNormals, glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), 128);
-	Mesh* CubeModelMesh = new Mesh(CubeMeshVertices, CubeMeshNormals, glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), 128);
+	//Mesh* CubeModelMesh = new Mesh(CubeMeshVertices, CubeMeshNormals, glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), 128);
+	//Mesh* Character = new Mesh(CustomMeshVertices, CustomMeshNormals, glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), 128);
 
 	Sphere* RedSphere = new Sphere(glm::vec3(0, 0, -20), 4, glm::vec3(1, 0.32, 0.36), glm::vec3(1, 0.32, 0.36), glm::vec3(0.7f, 0.7f, 0.7f), 128);
 	Sphere* YellowSphere = new Sphere(glm::vec3(5, -1, -15), 2, glm::vec3(0.9, 0.76, 0.46), glm::vec3(0.9, 0.76, 0.46), glm::vec3(0.7f, 0.7f, 0.7f), 128);
@@ -59,7 +64,8 @@ int main(int argc, char* argv[]) {
 	Shapes.push_back(LightGreySphere);
 	Shapes.push_back(Floor);
 	//Shapes.push_back(CubeModelMesh);
-	Shapes.push_back(TeapotModelMesh);
+	//Shapes.push_back(TeapotModelMesh);
+	//Shapes.push_back(Character);
 
 	//Shapes.push_back(Polygon);
 
@@ -72,11 +78,11 @@ int main(int argc, char* argv[]) {
 	//delete Polygon;
 
 	Camera* MainCamera = new Camera(glm::vec3(0, 0, 5), glm::vec3(0, 0, -1), 1.0f, 0.25f);
-	Light* PointLight = new Light(glm::vec3(0, 2, 10), glm::vec3(1.0f, 1.0f, 1.0f));
-	glm::vec3 AmbientLightC = glm::vec3(0.1f, 0.1f, 0.1f);
+	Light* PointL = new Light(glm::vec3(0, 20, 10), glm::vec3(1.0f, 1.0f, 1.0f));
+	AreaLight* AreaL = new AreaLight(glm::vec3(-4.5f, 20.0f, -4.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(9.0f, 0.1f, 9.0f));
 	
 	if (RTracer.Init("Rayspace", 800, 600, SDL_RENDERER_ACCELERATED)) {
-		RTracer.Configure(Shapes, MainCamera, AmbientLightC, PointLight);
+		RTracer.Configure(Shapes, MainCamera, glm::vec3(0.1f, 0.1f, 0.1f), PointL, AreaL);
 		RTracer.Start();
 	}
 	else {
