@@ -190,7 +190,7 @@ glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, Hit
 		if (CR_Effects_Shadows) {
 			HitInfo LightRayHit;
 			for (int i = 0; i < CR_Shapes.size(); ++i) {
-				CR_Shapes[i]->CheckIntersection(_Hit.IntPoint, LightDir, LightRayHit);
+				CR_Shapes[i]->CheckIntersection(_Hit.IntPoint + _Hit.Normal * 1e-4f, LightDir, LightRayHit);
 			}
 
 			if (LightRayHit.HitStatus && LightRayHit.Distance > 0 && LightRayHit.Distance < glm::length(LightDirFull)) {
@@ -200,7 +200,7 @@ glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, Hit
 
 		if (_CurrentDepth < _MaxDepth) {
 			HitInfo ReflRayHit;
-			return Raytrace(_Hit.ReflRayOrigin, _Hit.ReflRayDir, ReflRayHit, _CurrentDepth += 1, _MaxDepth);
+			return CombinedColor += _Hit.SpecularC * Raytrace(_Hit.ReflRayOrigin, _Hit.ReflRayDir, ReflRayHit, _CurrentDepth += 1, _MaxDepth);
 		}
 	}
 	
@@ -245,10 +245,9 @@ void Raytracer::Render()
 
 				Uint32 ColorBitValue = 0;
 				HitInfo Hit;
-				glm::vec3 CombinedColor = Raytrace(CR_MainCamera->Position, RayDirection, Hit, 1, 1);	
-				glm::vec3 ReflColor;
-				ReflColor = CombinedColor + Hit.SpecularC * Raytrace(Hit.ReflRayOrigin, Hit.ReflRayDir, Hit, 1, 2);
-				CombinedColor = ReflColor;	
+				glm::vec3 CombinedColor = Raytrace(CR_MainCamera->Position, RayDirection, Hit, 1, 1);
+				glm::vec3 ReflColor = Raytrace(Hit.ReflRayOrigin, Hit.ReflRayDir, Hit, 1, 4);
+				CombinedColor = CombinedColor * ReflColor;	
 				ColorBitValue = SDL_MapRGB(CR_BufferSurface->format, glm::clamp(CombinedColor.r * 255, 0.0f, 255.0f), glm::clamp(CombinedColor.g * 255, 0.0f, 255.0f), glm::clamp(CombinedColor.b * 255, 0.0f, 255.0f));
 				PixelAddress[LineOffset + x] = ColorBitValue;
 			}
