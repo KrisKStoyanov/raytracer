@@ -11,6 +11,8 @@
 #include <glm/matrix.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "Box.h"
+
 class Light
 {
 public:

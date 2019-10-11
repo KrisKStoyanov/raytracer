@@ -78,11 +78,10 @@ int main(int argc, char* argv[]) {
 	//delete Polygon;
 
 	Camera* MainCamera = new Camera(glm::vec3(0, 0, 5), glm::vec3(0, 0, -1), 1.0f, 0.25f);
-	Light* PointL = new Light(glm::vec3(0, 20, 10), glm::vec3(1.0f, 1.0f, 1.0f));
-	AreaLight* AreaL = new AreaLight(glm::vec3(-4.5f, 20.0f, -4.5f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(9.0f, 0.1f, 9.0f));
+	Light* MainLight = new Light(glm::vec3(0, 20, 0), glm::vec3(1.0f, 1.0f, 1.0f));
 	
 	if (RTracer.Init("Rayspace", 800, 600, SDL_RENDERER_ACCELERATED)) {
-		RTracer.Configure(Shapes, MainCamera, glm::vec3(0.1f, 0.1f, 0.1f), PointL, AreaL);
+		RTracer.Configure(Shapes, MainCamera, glm::vec3(0.1f, 0.1f, 0.1f), MainLight);
 		RTracer.Start();
 	}
 	else {

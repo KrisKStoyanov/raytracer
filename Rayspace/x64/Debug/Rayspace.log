@@ -1,5 +1,21 @@
-﻿  Main.cpp
-  Plane.cpp
-  Triangle.cpp
-  Generating Code...
+﻿  Raytracer.cpp
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(23,40): warning C4244:  '=': conversion from 'unsigned int' to 'float', possible loss of data
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(143,21): warning C4244:  'initializing': conversion from 'unsigned __int64' to 'float', possible loss of data
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(214,45): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(222,17): warning C4244:  'initializing': conversion from 'float' to 'int', possible loss of data
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(250,166): warning C4244:  'argument': conversion from 'genType' to 'Uint8', possible loss of data
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(250,166): warning C4244:         with
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(250,166): warning C4244:         [
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(250,166): warning C4244:             genType=float
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(250,166): warning C4244:         ]
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(250,117): warning C4244:  'argument': conversion from 'genType' to 'Uint8', possible loss of data
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(250,117): warning C4244:         with
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(250,117): warning C4244:         [
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(250,117): warning C4244:             genType=float
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(250,117): warning C4244:         ]
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(250,68): warning C4244:  'argument': conversion from 'genType' to 'Uint8', possible loss of data
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(250,68): warning C4244:         with
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(250,68): warning C4244:         [
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(250,68): warning C4244:             genType=float
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(250,68): warning C4244:         ]
   Rayspace.vcxproj -> C:\Users\stoya\source\repos\Rayspace\322COM\x64\Debug\Rayspace.exe
