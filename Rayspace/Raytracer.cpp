@@ -35,7 +35,7 @@ bool Raytracer::Init(const char* _WindowName, int _WindowWidth, int _WindowHeigh
 	BMask = 0x00ff0000;
 	AMask = 0xff000000;
 #endif
-
+	Start();
 	return 1;
 }
 

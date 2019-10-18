@@ -8,23 +8,14 @@
 #include <glm/glm.hpp>
 #include <glm/matrix.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include "Sphere.h"
-#include "Plane.h"
-#include "Triangle.h"
-#include "objloader.h"
 #include "Raytracer.h"
-#include "Camera.h"
-#include "Mesh.h"
 
 //glm::vec3** ScreenImageBuffer;
 
 Raytracer RTracer;
 
 int main(int argc, char* argv[]) {
-	if (RTracer.Init("Rayspace", 800, 600)) {
-		RTracer.Start();
-	}
-	else {
+	if (!RTracer.Init("Rayspace", 800, 600)) {
 		return -1;
 	}
 
