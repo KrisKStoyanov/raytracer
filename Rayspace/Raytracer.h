@@ -60,6 +60,8 @@ public:
 	float CR_SoftShadowSamples = 64;
 	glm::vec3 CR_AreaLightSize;
 
+	std::vector<Light*> CR_AreaLights;
+
 	std::vector<Shape*> CR_ActiveObjects;
 	std::vector<Shape*> CR_InactiveObjects;
 

@@ -88,6 +88,14 @@ void Raytracer::Configure()
 	CR_AmbientColor = glm::vec3(0.1f, 0.1f, 0.1f);
 	CR_AreaLightSize = glm::vec3(9.0f, 0.1f, 9.0f);
 
+	float CellsPerRow = glm::floor(glm::sqrt(CR_SoftShadowSamples));
+	float CellSizeX = (CR_PointLight->Position.x - CR_AreaLightSize.x) / glm::floor(glm::sqrt(CR_SoftShadowSamples));
+	float CellSizeZ = (CR_PointLight->Position.z - CR_AreaLightSize.z) / glm::floor(glm::sqrt(CR_SoftShadowSamples));
+	for (int z = 0; z < CellsPerRow; ++z) {
+		for (int x = 0; x < CellsPerRow; ++x) {
+			CR_AreaLights.push_back(new Light(glm::vec3(CR_PointLight->Position.x + x * CellSizeX, CR_PointLight->Position.y, CR_PointLight->Position.z + z * CellSizeZ), CR_PointLight->ColorIntensity));
+		}
+	}
 	//LoadMesh("../teapot_simple_smooth.obj", glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), 128.0f);
 	//ToggleMesh();
 
@@ -126,22 +134,12 @@ glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, Hit
 		}
 
 		if (CR_Effects_Soft_Shadows) {
-			std::vector<Light*> AreaLights;
-			float CellsPerRow = glm::floor(glm::sqrt(CR_SoftShadowSamples));
-			float CellSizeX = (CR_PointLight->Position.x - CR_AreaLightSize.x) / glm::floor(glm::sqrt(CR_SoftShadowSamples));
-			float CellSizeZ = (CR_PointLight->Position.z - CR_AreaLightSize.z) / glm::floor(glm::sqrt(CR_SoftShadowSamples));
-			for (int z = 0; z < CellsPerRow; ++z) {
-				for (int x = 0; x < CellsPerRow; ++x) {
-					AreaLights.push_back(new Light(glm::vec3(CR_PointLight->Position.x + x * CellSizeX, CR_PointLight->Position.y, CR_PointLight->Position.z + z * CellSizeZ), CR_PointLight->ColorIntensity));
-				}
-			}
-
-			glm::vec3 LightRayOrigin = _Hit.IntPoint + _Hit.Normal * 1e-4f;
 			std::vector<HitInfo> AreaLightHits;
-			for (int s = 0; s < AreaLights.size(); ++s) {
+			glm::vec3 LightRayOrigin = _Hit.IntPoint + _Hit.Normal * 1e-4f;
+			for (int s = 0; s < CR_AreaLights.size(); ++s) {
 				HitInfo LightRayHit;
 				
-				LightDirFull = AreaLights[s]->Position - _Hit.IntPoint;
+				LightDirFull = CR_AreaLights[s]->Position - _Hit.IntPoint;
 				LightDir = glm::normalize(LightDirFull);
 
 				for (int i = 0; i < CR_ActiveObjects.size(); ++i) {
@@ -152,7 +150,7 @@ glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, Hit
 				}
 			}
 
-			float ColorCount = AreaLights.size();
+			float ColorCount = CR_AreaLights.size();
 			for (int i = 0; i < AreaLightHits.size(); ++i) {
 				ColorCount--;
 				CombinedColor += AmbientColor;
@@ -166,11 +164,7 @@ glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, Hit
 				CombinedColor += AmbientColor + DiffuseColor + SpecularColor;
 			}
 
-			CombinedColor /= AreaLights.size();
-
-			for(Light* L : AreaLights){
-				delete L;
-			}
+			CombinedColor /= CR_AreaLights.size();
 		}
 		if (CR_Effects_Reflections && _CurrentDepth < _MaxDepth) {
 			HitInfo ReflRayHit;
@@ -374,12 +368,16 @@ bool Raytracer::ToggleMesh()
 
 void Raytracer::Deactivate()
 {
-	for (int i = 0; i < CR_ActiveObjects.size(); ++i) {
-		delete CR_ActiveObjects[i];
+	for (Light* L : CR_AreaLights) {
+		delete L;
 	}
 
-	for (int i = 0; i < CR_InactiveObjects.size(); ++i) {
-		delete CR_InactiveObjects[i];
+	for (Shape* S : CR_ActiveObjects) {
+		delete S;
+	}
+
+	for (Shape* S : CR_InactiveObjects) {
+		delete S;
 	}
 
 	CR_PointLight = NULL;
