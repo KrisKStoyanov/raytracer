@@ -8,7 +8,7 @@ Raytracer::~Raytracer()
 {
 }
 
-bool Raytracer::Init(const char* _WindowName, float _WindowWidth, float _WindowHeight)
+bool Raytracer::Init(const char* _WindowName, int _WindowWidth, int _WindowHeight)
 {
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
 		std::cout << "WARNING: SDL could not initialize!" << std::endl;
@@ -99,28 +99,29 @@ void Raytracer::Configure()
 	Render();
 }
 
-glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, HitInfo& _Hit, int _CurrentDepth, int _MaxDepth)
+glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, int _CurrentDepth, int _MaxDepth)
 {
 	glm::vec3 CombinedColor = CR_AmbientColor;
+	HitInfo Hit;
 	for (int i = 0; i < CR_ActiveObjects.size(); ++i) {
-		CR_ActiveObjects[i]->CheckIntersection(_RayOrigin, _RayDirection, _Hit);
+		CR_ActiveObjects[i]->CheckIntersection(_RayOrigin, _RayDirection, Hit);
 	}
 
-	if (_Hit.HitStatus) {
-		glm::vec3 AmbientColor = _Hit.AmbientC * CR_AmbientColor;
-		glm::vec3 LightDirFull = CR_PointLight->Position - _Hit.IntPoint;
+	if (Hit.HitStatus) {
+		glm::vec3 AmbientColor = Hit.AmbientC * CR_AmbientColor;
+		glm::vec3 LightDirFull = CR_PointLight->Position - Hit.IntPoint;
 		glm::vec3 LightDir = glm::normalize(LightDirFull);
 
-		float DiffuseScalar = glm::dot(LightDir, _Hit.Normal);
-		glm::vec3 DiffuseColor = _Hit.DiffuseC * CR_PointLight->ColorIntensity * glm::max(0.0f, DiffuseScalar);
-		glm::vec3 LightReflDir = glm::normalize(2 * -DiffuseScalar * _Hit.Normal + LightDir);
+		float DiffuseScalar = glm::dot(LightDir, Hit.Normal);
+		glm::vec3 DiffuseColor = Hit.DiffuseC * CR_PointLight->ColorIntensity * glm::max(0.0f, DiffuseScalar);
+		glm::vec3 LightReflDir = glm::normalize(2 * -DiffuseScalar * Hit.Normal + LightDir);
 		float SpecularScalar = glm::dot(LightReflDir, _RayDirection);
-		glm::vec3 SpecularColor = _Hit.SpecularC * CR_PointLight->ColorIntensity * glm::pow(glm::max(0.0f, SpecularScalar), _Hit.Shininess);
+		glm::vec3 SpecularColor = Hit.SpecularC * CR_PointLight->ColorIntensity * glm::pow(glm::max(0.0f, SpecularScalar), Hit.Shininess);
 		glm::vec3 ShadingColor = CombinedColor = AmbientColor + DiffuseColor + SpecularColor;
 
 		if (CR_Effects_Hard_Shadows) {
 			HitInfo LightRayHit;
-			glm::vec3 LightRayOrigin = _Hit.IntPoint + _Hit.Normal * 1e-4f;
+			glm::vec3 LightRayOrigin = Hit.IntPoint + Hit.Normal * 1e-4f;
 			for (int i = 0; i < CR_ActiveObjects.size(); ++i) {
 				CR_ActiveObjects[i]->CheckIntersection(LightRayOrigin, LightDir, LightRayHit);
 			}
@@ -132,11 +133,11 @@ glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, Hit
 
 		if (CR_Effects_Soft_Shadows) {
 			float AreaLightInts = 0;
-			glm::vec3 LightRayOrigin = _Hit.IntPoint + _Hit.Normal * 1e-4f;
+			glm::vec3 LightRayOrigin = Hit.IntPoint + Hit.Normal * 1e-4f;
 			for (int s = 0; s < CR_AreaLights.size(); ++s) {
 				HitInfo LightRayHit;
 				
-				LightDirFull = CR_AreaLights[s]->Position - _Hit.IntPoint;
+				LightDirFull = CR_AreaLights[s]->Position - Hit.IntPoint;
 				LightDir = glm::normalize(LightDirFull);
 
 				for (int i = 0; i < CR_ActiveObjects.size(); ++i) {
@@ -150,8 +151,7 @@ glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, Hit
 			CombinedColor = (AreaLightInts * AmbientColor + (AreaLightsCount - AreaLightInts) * ShadingColor) * 1.0f / AreaLightsCount;
 		}
 		if (CR_Effects_Reflections && _CurrentDepth < _MaxDepth) {
-			HitInfo ReflRayHit;
-			return CombinedColor + _Hit.SpecularC * Raytrace(_Hit.ReflRayOrigin, _Hit.ReflRayDir, ReflRayHit, _CurrentDepth += 1, _MaxDepth);
+			return CombinedColor + Hit.SpecularC * Raytrace(Hit.ReflRayOrigin, Hit.ReflRayDir, _CurrentDepth += 1, _MaxDepth);
 		}
 	}
 	
@@ -162,19 +162,19 @@ void Raytracer::Render()
 {
 	auto StartTime = std::chrono::high_resolution_clock::now();
 
-	CR_ScreenSurface = SDL_GetWindowSurface(CR_MainWindow);
-	float ScreenSurfaceHeightDet = (1.0f / CR_ScreenSurface->h);
-	float ScreenAspectRatio = CR_ScreenSurface->w * ScreenSurfaceHeightDet;
-	SDL_Surface* BufferSurface = SDL_CreateRGBSurface(0, CR_ScreenSurface->w, CR_ScreenSurface->h, 32, RMask, GMask, BMask, AMask);
+	SDL_Surface* ScreenSurface = SDL_GetWindowSurface(CR_MainWindow);
+	SDL_Surface* BufferSurface = SDL_CreateRGBSurface(0, ScreenSurface->w, ScreenSurface->h, 32, RMask, GMask, BMask, AMask);
 
 	if (BufferSurface != NULL) {
 		uint32_t* PixelAddress = (uint32_t*)BufferSurface->pixels;
 		if (SDL_MUSTLOCK(BufferSurface)) {
 			SDL_LockSurface(BufferSurface);
 		}
+		float ScreenSurfaceHeightDet = 1.0f / ScreenSurface->h;
+		float ScreenAspectRatio = ScreenSurface->w * ScreenSurfaceHeightDet;
 		int OffsetMod = BufferSurface->pitch * 0.25f;
-		float FOV_Angle = glm::tan(glm::radians(90.0f) * 0.5f);
-		for (int y = 0; y < CR_ScreenSurface->h; ++y) {
+		float FOV_Angle = glm::tan(glm::radians(45.0f) * 0.5f);
+		for (int y = 0; y < ScreenSurface->h; ++y) {
 
 			int LineOffset = y * OffsetMod;
 
@@ -182,22 +182,20 @@ void Raytracer::Render()
 			float PixelRemappedy = 1.0f - 2.0f * PixelNormalizedy;
 			float PixelCameray = PixelRemappedy * FOV_Angle;
 
-			for (int x = 0; x < CR_ScreenSurface->w; ++x) {
+			for (int x = 0; x < ScreenSurface->w; ++x) {
 
 				/*Uint8* PixelAddress = (Uint8*)ImageSurface->pixels + y * ImageSurface->pitch + x * ImageSurface->format->BytesPerPixel;*/
 				/*int LineOffset = y * (ImageSurface->pitch / sizeof(uint32_t));*/				
 
-				float PixelNormalizedx = (x + 0.5f) / CR_ScreenSurface->w;
+				float PixelNormalizedx = (x + 0.5f) * (1.0f / ScreenSurface->w);
 				float PixelRemappedx = (2.0f * PixelNormalizedx - 1.0f) * ScreenAspectRatio;
 				float PixelCamerax = PixelRemappedx * FOV_Angle;
 
 				glm::vec3 PixelCameraSpacePos(PixelCamerax + CR_MainCamera->Position.x, PixelCameray + CR_MainCamera->Position.y, CR_MainCamera->Position.z - 1.0f);
 				glm::vec3 RayDirection = glm::normalize(PixelCameraSpacePos - CR_MainCamera->Position);
 
-				Uint32 ColorBitValue = 0;
-				HitInfo Hit;
-				glm::vec3 CombinedColor = Raytrace(CR_MainCamera->Position, RayDirection, Hit, 1, 4);
-				ColorBitValue = SDL_MapRGB(BufferSurface->format, glm::clamp(CombinedColor.r * 255.0f, 0.0f, 255.0f), glm::clamp(CombinedColor.g * 255.0f, 0.0f, 255.0f), glm::clamp(CombinedColor.b * 255.0f, 0.0f, 255.0f));
+				glm::vec3 CombinedColor = Raytrace(CR_MainCamera->Position, RayDirection, 1, 4);
+				Uint32 ColorBitValue = SDL_MapRGB(BufferSurface->format, glm::clamp(CombinedColor.r * 255.0f, 0.0f, 255.0f), glm::clamp(CombinedColor.g * 255.0f, 0.0f, 255.0f), glm::clamp(CombinedColor.b * 255.0f, 0.0f, 255.0f));
 				PixelAddress[LineOffset + x] = ColorBitValue;
 			}
 		}
@@ -206,8 +204,8 @@ void Raytracer::Render()
 			SDL_UnlockSurface(BufferSurface);
 		}
 
-		SDL_Surface* OptimizedSurface = SDL_ConvertSurface(BufferSurface, CR_ScreenSurface->format, 0);
-		SDL_BlitSurface(OptimizedSurface, NULL, CR_ScreenSurface, NULL);
+		SDL_Surface* OptimizedSurface = SDL_ConvertSurface(BufferSurface, ScreenSurface->format, 0);
+		SDL_BlitSurface(OptimizedSurface, NULL, ScreenSurface, NULL);
 		SDL_FreeSurface(OptimizedSurface);
 		OptimizedSurface = NULL;
 		delete OptimizedSurface;
@@ -215,6 +213,9 @@ void Raytracer::Render()
 		BufferSurface = NULL;
 		delete BufferSurface;
 		SDL_UpdateWindowSurface(CR_MainWindow);
+		SDL_FreeSurface(ScreenSurface);
+		ScreenSurface = NULL;
+		delete ScreenSurface;
 		//std::cout << "Unoptimized Format: " << SDL_GetPixelFormatName(CR_BufferSurface->format->format) << std::endl;
 		//std::cout << "Optmized Format: " << SDL_GetPixelFormatName(OptimizedSurface->format->format) << std::endl;
 	}
@@ -369,12 +370,11 @@ void Raytracer::Deactivate()
 	delete CR_PointLight;
 	CR_MainCamera = NULL;
 	delete CR_MainCamera;
-	SDL_FreeSurface(CR_ScreenSurface);
-	CR_ScreenSurface = NULL;
-	delete CR_ScreenSurface;
+	SDL_FreeSurface(SDL_GetWindowSurface(CR_MainWindow));
+	//SDL_FreeSurface(CR_ScreenSurface);
+	//CR_ScreenSurface = NULL;
+	//delete CR_ScreenSurface;
 	SDL_DestroyWindow(CR_MainWindow);
-	CR_MainWindow = NULL;
-	delete CR_MainWindow;
 
 	SDL_Quit();
 }

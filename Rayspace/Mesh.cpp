@@ -99,13 +99,14 @@ Mesh::~Mesh()
 
 bool Mesh::CheckIntersection(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, HitInfo& _HitInfo)
 {
-	if (BoundingBox->CheckIntersection(_RayOrigin, _RayDirection, _HitInfo)) {
-		bool IntersectStatus = false;
-		for (int i = 0; i < TriangleCollection.size(); ++i) {
-			if (TriangleCollection[i]->CheckIntersection(_RayOrigin, _RayDirection, _HitInfo)) {
-				IntersectStatus = true;
-			};
-		}
-		return IntersectStatus;
+	if (!BoundingBox->CheckIntersection(_RayOrigin, _RayDirection, _HitInfo)) {
+		return false;
 	}
+	bool IntMesh = false;
+	for (int i = 0; i < TriangleCollection.size(); ++i) {
+		if (TriangleCollection[i]->CheckIntersection(_RayOrigin, _RayDirection, _HitInfo)) {
+			IntMesh = true;
+		}
+	}
+	return IntMesh;
 }

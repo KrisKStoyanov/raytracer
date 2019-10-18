@@ -31,7 +31,7 @@ public:
 
 	bool CR_Active = false;
 
-	bool Init(const char* _WindowName, float _WindowWidth, float _WindowHeight);
+	bool Init(const char* _WindowName, int _WindowWidth, int _WindowHeight);
 	void Start();
 	void CheckSDLError(int line);
 	void Configure();
@@ -46,30 +46,26 @@ public:
 	Light* CR_PointLight = NULL;
 	float CR_SoftShadowSamples = 64;
 	glm::vec3 CR_AreaLightSize;
-
 	std::vector<Light*> CR_AreaLights;
 
 	std::vector<Shape*> CR_ActiveObjects;
 
 	SDL_Window* CR_MainWindow = NULL;
-	SDL_Surface* CR_ScreenSurface = NULL;
-
 	Camera* CR_MainCamera = NULL;
 
-	glm::vec3 Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, HitInfo& _HitInfo, int _CurrentDepth, int _MaxDepth);
+	glm::vec3 Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, int _CurrentDepth, int _MaxDepth);
 
 	bool CR_Mesh_Rendering = false;
-
 	bool CR_Effects_Hard_Shadows = true;
 	bool CR_Effects_Soft_Shadows = true;
 	bool CR_Effects_Reflections = true;
 
+	void ToggleMeshRendering();
 	void ToggleHardShadows();
 	void ToggleSoftShadows();
 	void ToggleReflections();
 
 	bool LoadMesh(const char* _FilePath, glm::vec3 _AmbienctC, glm::vec3 _DiffuseC, glm::vec3 _SpecularC, float _Shininess);
-	void ToggleMeshRendering();
 };
 
 
