@@ -10,8 +10,6 @@ Raytracer::~Raytracer()
 
 bool Raytracer::Init(std::string _WindowName, unsigned int _WindowWidth, unsigned int _WindowHeight, SDL_RendererFlags _RenderingFlag)
 {
-	LocalState CurrentState = STARTING;
-
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
 		std::cout << "WARNING: SDL could not initialize!" << std::endl;
 		CheckSDLError(__LINE__);
@@ -49,7 +47,7 @@ bool Raytracer::Init(std::string _WindowName, unsigned int _WindowWidth, unsigne
 
 void Raytracer::Start()
 {
-	CR_CurrentState = ACTIVE;
+	CR_Active = true;
 	Configure();
 	Update();
 }
@@ -89,14 +87,16 @@ void Raytracer::Configure()
 	CR_AreaLightSize = glm::vec3(9.0f, 0.1f, 9.0f);
 
 	float CellsPerRow = glm::floor(glm::sqrt(CR_SoftShadowSamples));
-	float CellSizeX = (CR_PointLight->Position.x - CR_AreaLightSize.x) / glm::floor(glm::sqrt(CR_SoftShadowSamples));
-	float CellSizeZ = (CR_PointLight->Position.z - CR_AreaLightSize.z) / glm::floor(glm::sqrt(CR_SoftShadowSamples));
+	float CellSizeX = (CR_PointLight->Position.x - CR_AreaLightSize.x) / CellsPerRow;
+	float CellSizeZ = (CR_PointLight->Position.z - CR_AreaLightSize.z) / CellsPerRow;
 	for (int z = 0; z < CellsPerRow; ++z) {
 		for (int x = 0; x < CellsPerRow; ++x) {
 			CR_AreaLights.push_back(new Light(glm::vec3(CR_PointLight->Position.x + x * CellSizeX, CR_PointLight->Position.y, CR_PointLight->Position.z + z * CellSizeZ), CR_PointLight->ColorIntensity));
 		}
 	}
-	//LoadMesh("../teapot_simple_smooth.obj", glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), 128.0f);
+	//LoadMesh("../teapot_simple_smooth.obj", glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.5f, 0.5f, 0.5f), 128.0f);
+	//LoadMesh("../dragon.obj", glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.5f, 0.5f, 0.5f), 128.0f);
+	//LoadMesh("../bunny.obj", glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.5f, 0.5f, 0.5f), 128.0f);
 	//ToggleMesh();
 
 	Render();
@@ -150,21 +150,17 @@ glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, Hit
 				}
 			}
 
-			float ColorCount = CR_AreaLights.size();
-			for (int i = 0; i < AreaLightHits.size(); ++i) {
-				ColorCount--;
-				CombinedColor += AmbientColor;
-			}
-			for(int i = 0; i < ColorCount; ++i) {
-				float DiffuseScalar = glm::dot(LightDir, _Hit.Normal);
-				glm::vec3 DiffuseColor = _Hit.DiffuseC * CR_PointLight->ColorIntensity * glm::max(0.0f, DiffuseScalar);
-				glm::vec3 LightReflDir = glm::normalize(2 * -DiffuseScalar * _Hit.Normal + LightDir);
-				float SpecularScalar = glm::dot(LightReflDir, _RayDirection);
-				glm::vec3 SpecularColor = _Hit.SpecularC * CR_PointLight->ColorIntensity * glm::pow(glm::max(0.0f, SpecularScalar), _Hit.Shininess);
-				CombinedColor += AmbientColor + DiffuseColor + SpecularColor;
-			}
+			float DiffuseScalar = glm::dot(LightDir, _Hit.Normal);
+			glm::vec3 DiffuseColor = _Hit.DiffuseC * CR_PointLight->ColorIntensity * glm::max(0.0f, DiffuseScalar);
+			glm::vec3 LightReflDir = glm::normalize(2 * -DiffuseScalar * _Hit.Normal + LightDir);
+			float SpecularScalar = glm::dot(LightReflDir, _RayDirection);
+			glm::vec3 SpecularColor = _Hit.SpecularC * CR_PointLight->ColorIntensity * glm::pow(glm::max(0.0f, SpecularScalar), _Hit.Shininess);
 
-			CombinedColor /= CR_AreaLights.size();
+			glm::vec3 ShadingColor = AmbientColor + DiffuseColor + SpecularColor;
+
+			CombinedColor = (float)AreaLightHits.size() * AmbientColor + (float)(CR_AreaLights.size() - AreaLightHits.size()) * ShadingColor;
+
+			CombinedColor *= 1.0f / CR_AreaLights.size();
 		}
 		if (CR_Effects_Reflections && _CurrentDepth < _MaxDepth) {
 			HitInfo ReflRayHit;
@@ -194,7 +190,7 @@ void Raytracer::Render()
 
 			int LineOffset = y * OffsetMod;
 
-			float PixelNormalizedy = (y + 0.5f) / CR_ScreenSurface->h;
+			float PixelNormalizedy = (y + 0.5f) * (1.0f / CR_ScreenSurface->h);
 			float PixelRemappedy = 1.0f - 2.0f * PixelNormalizedy;
 			float PixelCameray = PixelRemappedy * FOV_Angle;
 
@@ -246,11 +242,11 @@ void Raytracer::Render()
 
 void Raytracer::Update()
 {
-	while (CR_CurrentState == 1) {
+	while (CR_Active) {
 		SDL_Event CurrentEvent;
 		while (SDL_PollEvent(&CurrentEvent)) {
 			if (CurrentEvent.type == SDL_QUIT) {
-				CR_CurrentState = INACTIVE;
+				CR_Active = false;
 				break;
 			}
 			if (CurrentEvent.type == SDL_WINDOWEVENT) {
@@ -270,7 +266,7 @@ void Raytracer::Update()
 				switch (CurrentEvent.key.keysym.sym) {
 				case SDLK_ESCAPE:
 					std::cout << "Hotkey Pressed: [ESC]" << std::endl;
-					CR_CurrentState = INACTIVE;
+					CR_Active = false;
 					break;
 				case SDLK_w:
 					CR_MainCamera->SetPosition(CR_MainCamera->Position + glm::vec3(0.0f, 0.0f, -1.0f));
@@ -344,7 +340,7 @@ bool Raytracer::LoadMesh(const char* _FilePath, glm::vec3 _AmbienctC, glm::vec3 
 		return false;
 	}
 	Mesh* TempMesh = new Mesh(MeshVertices, MeshNormals, _AmbienctC, _DiffuseC, _SpecularC, _Shininess);
-	CR_InactiveObjects.push_back(TempMesh);
+	CR_ActiveObjects.push_back(TempMesh);
 	
 	return true;
 }
@@ -384,7 +380,6 @@ void Raytracer::Deactivate()
 	delete CR_PointLight;
 	CR_MainCamera = NULL;
 	delete CR_MainCamera;
-	SDL_GL_DeleteContext(CR_OGL_Context);
 	SDL_FreeSurface(CR_ScreenSurface);
 	CR_ScreenSurface = NULL;
 	delete CR_ScreenSurface;

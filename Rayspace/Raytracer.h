@@ -23,23 +23,13 @@
 #include "HitInfo.h"
 #include "Light.h"
 
-enum LocalState {
-	STARTING,
-	ACTIVE,
-	INACTIVE
-};
-
-enum Effect {
-	LIGHTING,
-	SHADOWS,
-	REFLECTIONS
-};
-
 class Raytracer
 {
 public:
 	Raytracer();
 	~Raytracer();
+
+	bool CR_Active = false;
 
 	bool Init(std::string _WindowName, unsigned int _WindowWidth, unsigned int _WindowHeight, SDL_RendererFlags _RenderingFlag);
 	void Start();
@@ -69,9 +59,6 @@ public:
 	SDL_Surface* CR_ScreenSurface = NULL;
 
 	Camera* CR_MainCamera = NULL;
-
-	SDL_GLContext CR_OGL_Context;
-	LocalState CR_CurrentState;
 
 	float CR_ScreenAspectRatio;
 
