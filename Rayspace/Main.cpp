@@ -21,7 +21,7 @@
 Raytracer RTracer;
 
 int main(int argc, char* argv[]) {
-	if (RTracer.Init("Rayspace", 800, 600, SDL_RENDERER_ACCELERATED)) {
+	if (RTracer.Init("Rayspace", 800, 600)) {
 		RTracer.Start();
 	}
 	else {

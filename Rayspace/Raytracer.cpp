@@ -8,7 +8,7 @@ Raytracer::~Raytracer()
 {
 }
 
-bool Raytracer::Init(std::string _WindowName, unsigned int _WindowWidth, unsigned int _WindowHeight, SDL_RendererFlags _RenderingFlag)
+bool Raytracer::Init(const char* _WindowName, float _WindowWidth, float _WindowHeight)
 {
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
 		std::cout << "WARNING: SDL could not initialize!" << std::endl;
@@ -16,18 +16,12 @@ bool Raytracer::Init(std::string _WindowName, unsigned int _WindowWidth, unsigne
 		return 0;
 	}
 
-	CR_WindowWidth = _WindowWidth;
-	CR_WindowHeight = _WindowHeight;
-	CR_ScreenAspectRatio = CR_WindowWidth / CR_WindowHeight;
-
-	CR_MainWindow = SDL_CreateWindow(_WindowName.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, CR_WindowWidth, CR_WindowHeight, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+	CR_MainWindow = SDL_CreateWindow(_WindowName, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, _WindowWidth, _WindowHeight, SDL_WINDOW_RESIZABLE);
 	if (CR_MainWindow == nullptr) {
 		std::cout << "WARNING: Window could not be created!" << std::endl;
 		CheckSDLError(__LINE__);
 		return 0;
 	}
-
-	CR_ScreenSurface = SDL_GetWindowSurface(CR_MainWindow);
 
 
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
@@ -75,6 +69,7 @@ void Raytracer::Configure()
 	Sphere* TempLightGreySphere = new Sphere(glm::vec3(-5.5f, 0.0f, -15.0f), 3.0f, glm::vec3(0.9f, 0.9f, 0.9f), glm::vec3(0.9f, 0.9f, 0.9f), glm::vec3(0.5f, 0.5f, 0.5f), 128.0f);
 
 	Plane* TempPlane = new Plane(glm::vec3(0.0f, -4.0f, -20.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(0.5f, 0.5f, 0.5f), 128.0f);
+	CR_ActiveObjects.clear();
 	CR_ActiveObjects.push_back(TempRedSphere);
 	CR_ActiveObjects.push_back(TempYellowSphere);
 	CR_ActiveObjects.push_back(TempLightBlueSphere);
@@ -94,10 +89,12 @@ void Raytracer::Configure()
 			CR_AreaLights.push_back(new Light(glm::vec3(CR_PointLight->Position.x + x * CellSizeX, CR_PointLight->Position.y, CR_PointLight->Position.z + z * CellSizeZ), CR_PointLight->ColorIntensity));
 		}
 	}
-	//LoadMesh("../teapot_simple_smooth.obj", glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.5f, 0.5f, 0.5f), 128.0f);
+	if (CR_Mesh_Rendering) {
+		LoadMesh("../teapot_simple_smooth.obj", glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.5f, 0.5f, 0.5f), 128.0f);
+	}
+	
 	//LoadMesh("../dragon.obj", glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.5f, 0.5f, 0.5f), 128.0f);
 	//LoadMesh("../bunny.obj", glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.5f, 0.5f, 0.5f), 128.0f);
-	//ToggleMesh();
 
 	Render();
 }
@@ -167,7 +164,7 @@ void Raytracer::Render()
 
 	CR_ScreenSurface = SDL_GetWindowSurface(CR_MainWindow);
 	float ScreenSurfaceHeightDet = (1.0f / CR_ScreenSurface->h);
-	CR_ScreenAspectRatio = CR_ScreenSurface->w * ScreenSurfaceHeightDet;
+	float ScreenAspectRatio = CR_ScreenSurface->w * ScreenSurfaceHeightDet;
 	SDL_Surface* BufferSurface = SDL_CreateRGBSurface(0, CR_ScreenSurface->w, CR_ScreenSurface->h, 32, RMask, GMask, BMask, AMask);
 
 	if (BufferSurface != NULL) {
@@ -191,7 +188,7 @@ void Raytracer::Render()
 				/*int LineOffset = y * (ImageSurface->pitch / sizeof(uint32_t));*/				
 
 				float PixelNormalizedx = (x + 0.5f) / CR_ScreenSurface->w;
-				float PixelRemappedx = (2.0f * PixelNormalizedx - 1.0f) * CR_ScreenAspectRatio;
+				float PixelRemappedx = (2.0f * PixelNormalizedx - 1.0f) * ScreenAspectRatio;
 				float PixelCamerax = PixelRemappedx * FOV_Angle;
 
 				glm::vec3 PixelCameraSpacePos(PixelCamerax + CR_MainCamera->Position.x, PixelCameray + CR_MainCamera->Position.y, CR_MainCamera->Position.z - 1.0f);
@@ -290,9 +287,14 @@ void Raytracer::Update()
 					std::cout << "Soft Shadows: " << CR_Effects_Soft_Shadows << std::endl;
 					break;
 				case SDLK_3:
-					std::cout << "Hotkey Pressed: [2]" << std::endl;
+					std::cout << "Hotkey Pressed: [3]" << std::endl;
 					ToggleReflections();
 					std::cout << "Reflections: " << CR_Effects_Reflections << std::endl;
+					break;
+				case SDLK_4:
+					std::cout << "Hotkey Pressed: [4]" << std::endl;
+					ToggleMeshRendering();
+					std::cout << "Mesh Rendering: " << CR_Mesh_Rendering << std::endl;
 					break;
 				default:
 					break;
@@ -336,10 +338,11 @@ bool Raytracer::LoadMesh(const char* _FilePath, glm::vec3 _AmbienctC, glm::vec3 
 	return true;
 }
 
-bool Raytracer::ToggleMesh()
+void Raytracer::ToggleMeshRendering()
 {
-	CR_Render_Meshes = !CR_Render_Meshes;
-	Mesh* TempMesh = new Mesh();
+	CR_Mesh_Rendering = !CR_Mesh_Rendering;
+	Configure();
+	//Mesh* TempMesh = new Mesh();
 	//std::vector<Shape*>::iterator startIt = CR_Shapes.begin();
 	//for (; startIt != CR_Shapes.end(); ++startIt) {
 	//	if (*startIt == TempMesh) {
@@ -350,7 +353,6 @@ bool Raytracer::ToggleMesh()
 
 	//auto e = std::find(CR_Shapes.begin(), CR_Shapes.end(), (Mesh*))
 	//CR_InactiveObjects.push_back();
-	return CR_Render_Meshes;
 }
 
 void Raytracer::Deactivate()
@@ -360,10 +362,6 @@ void Raytracer::Deactivate()
 	}
 
 	for (Shape* S : CR_ActiveObjects) {
-		delete S;
-	}
-
-	for (Shape* S : CR_InactiveObjects) {
 		delete S;
 	}
 
