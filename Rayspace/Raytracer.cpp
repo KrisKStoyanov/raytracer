@@ -119,7 +119,7 @@ glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, Hit
 		glm::vec3 LightReflDir = glm::normalize(2 * -DiffuseScalar * _Hit.Normal + LightDir);
 		float SpecularScalar = glm::dot(LightReflDir, _RayDirection);
 		glm::vec3 SpecularColor = _Hit.SpecularC * CR_PointLight->ColorIntensity * glm::pow(glm::max(0.0f, SpecularScalar), _Hit.Shininess);
-		CombinedColor = AmbientColor + DiffuseColor + SpecularColor;
+		glm::vec3 ShadingColor = CombinedColor = AmbientColor + DiffuseColor + SpecularColor;
 
 		if (CR_Effects_Hard_Shadows) {
 			HitInfo LightRayHit;
@@ -134,7 +134,7 @@ glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, Hit
 		}
 
 		if (CR_Effects_Soft_Shadows) {
-			std::vector<HitInfo> AreaLightHits;
+			float AreaLightInts = 0;
 			glm::vec3 LightRayOrigin = _Hit.IntPoint + _Hit.Normal * 1e-4f;
 			for (int s = 0; s < CR_AreaLights.size(); ++s) {
 				HitInfo LightRayHit;
@@ -146,21 +146,11 @@ glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, Hit
 					CR_ActiveObjects[i]->CheckIntersection(LightRayOrigin, LightDir, LightRayHit);
 				}
 				if (LightRayHit.HitStatus && LightRayHit.Distance > 0 && LightRayHit.Distance < glm::length(LightDirFull)) {
-					AreaLightHits.push_back(LightRayHit);
+					AreaLightInts++;
 				}
 			}
-
-			float DiffuseScalar = glm::dot(LightDir, _Hit.Normal);
-			glm::vec3 DiffuseColor = _Hit.DiffuseC * CR_PointLight->ColorIntensity * glm::max(0.0f, DiffuseScalar);
-			glm::vec3 LightReflDir = glm::normalize(2 * -DiffuseScalar * _Hit.Normal + LightDir);
-			float SpecularScalar = glm::dot(LightReflDir, _RayDirection);
-			glm::vec3 SpecularColor = _Hit.SpecularC * CR_PointLight->ColorIntensity * glm::pow(glm::max(0.0f, SpecularScalar), _Hit.Shininess);
-
-			glm::vec3 ShadingColor = AmbientColor + DiffuseColor + SpecularColor;
-
-			CombinedColor = (float)AreaLightHits.size() * AmbientColor + (float)(CR_AreaLights.size() - AreaLightHits.size()) * ShadingColor;
-
-			CombinedColor *= 1.0f / CR_AreaLights.size();
+			float AreaLightsCount = CR_AreaLights.size();
+			CombinedColor = (AreaLightInts * AmbientColor + (AreaLightsCount - AreaLightInts) * ShadingColor) * 1.0f / AreaLightsCount;
 		}
 		if (CR_Effects_Reflections && _CurrentDepth < _MaxDepth) {
 			HitInfo ReflRayHit;
@@ -176,7 +166,8 @@ void Raytracer::Render()
 	auto StartTime = std::chrono::high_resolution_clock::now();
 
 	CR_ScreenSurface = SDL_GetWindowSurface(CR_MainWindow);
-	CR_ScreenAspectRatio = CR_ScreenSurface->w / CR_ScreenSurface->h;
+	float ScreenSurfaceHeightDet = (1.0f / CR_ScreenSurface->h);
+	CR_ScreenAspectRatio = CR_ScreenSurface->w * ScreenSurfaceHeightDet;
 	SDL_Surface* BufferSurface = SDL_CreateRGBSurface(0, CR_ScreenSurface->w, CR_ScreenSurface->h, 32, RMask, GMask, BMask, AMask);
 
 	if (BufferSurface != NULL) {
@@ -185,12 +176,12 @@ void Raytracer::Render()
 			SDL_LockSurface(BufferSurface);
 		}
 		int OffsetMod = BufferSurface->pitch * 0.25f;
-		float FOV_Angle = glm::tan(glm::radians(90.0f * 0.5f));
+		float FOV_Angle = glm::tan(glm::radians(90.0f) * 0.5f);
 		for (int y = 0; y < CR_ScreenSurface->h; ++y) {
 
 			int LineOffset = y * OffsetMod;
 
-			float PixelNormalizedy = (y + 0.5f) * (1.0f / CR_ScreenSurface->h);
+			float PixelNormalizedy = (y + 0.5f) * ScreenSurfaceHeightDet;
 			float PixelRemappedy = 1.0f - 2.0f * PixelNormalizedy;
 			float PixelCameray = PixelRemappedy * FOV_Angle;
 
