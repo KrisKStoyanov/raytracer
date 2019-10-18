@@ -20,6 +20,7 @@ class Mesh : public Shape
 public:
 	Mesh(std::vector<glm::vec3> _VertexCollection, std::vector<glm::vec3> _NormalCollection, 
 		glm::vec3 _AmbientC, glm::vec3 _DiffuseC, glm::vec3 _SpecularC, float _Shininess);
+	Mesh();
 	~Mesh();
 
 	bool CheckIntersection(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, HitInfo &_HitInfo);

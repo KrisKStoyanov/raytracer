@@ -44,13 +44,10 @@ public:
 	bool Init(std::string _WindowName, unsigned int _WindowWidth, unsigned int _WindowHeight, SDL_RendererFlags _RenderingFlag);
 	void Start();
 	void CheckSDLError(int line);
-	void Configure(std::vector<Shape*> _Shapes, Camera* _MainCamera, glm::vec3 _AmbientLight, Light* _PointLight);
+	void Configure();
 	void Render();
 	void Update();
 	void Deactivate();
-
-	void PrintProgramLog(GLuint _ProgramID);
-	void PrintShaderLog(GLuint _ShaderID);
 
 	unsigned int CR_WindowWidth;
 	unsigned int CR_WindowHeight;
@@ -60,12 +57,14 @@ public:
 	glm::vec3 CR_AmbientColor;
 	
 	Light* CR_PointLight = NULL;
+	float CR_SoftShadowSamples = 64;
+	glm::vec3 CR_AreaLightSize;
 
 	std::vector<Shape*> CR_Shapes;
+	std::vector<Shape*> CR_InactiveObjects;
 
 	SDL_Window* CR_MainWindow = NULL;
 	SDL_Surface* CR_ScreenSurface = NULL;
-	SDL_Surface* CR_BufferSurface = NULL;
 
 	Camera* CR_MainCamera = NULL;
 
@@ -76,12 +75,16 @@ public:
 
 	glm::vec3 Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, HitInfo& _HitInfo, int _CurrentDepth, int _MaxDepth);
 
-	bool CR_Effects_Shadows = true;
+	bool CR_Effects_Hard_Shadows = true;
 	bool CR_Effects_Soft_Shadows = true;
 	bool CR_Effects_Reflections = true;
 
-	void ToggleShadows();
+	void ToggleHardShadows();
+	void ToggleSoftShadows();
 	void ToggleReflections();
+
+	bool LoadMesh(const char* _FilePath, glm::vec3 _AmbienctC, glm::vec3 _DiffuseC, glm::vec3 _SpecularC, float _Shininess);
+	bool ToggleMesh();
 };
 
 

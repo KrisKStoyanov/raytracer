@@ -89,6 +89,10 @@ Mesh::Mesh(std::vector<glm::vec3> _VertexCollection, std::vector<glm::vec3> _Nor
 	BoundingBox = new Box(glm::vec3(MinX, MinY, MinZ), glm::vec3(MaxX, MaxY, MaxZ));
 }
 
+Mesh::Mesh()
+{
+}
+
 Mesh::~Mesh()
 {
 }
