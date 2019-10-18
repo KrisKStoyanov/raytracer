@@ -71,23 +71,25 @@ void Raytracer::CheckSDLError(int line)
 
 void Raytracer::Configure()
 {
-	Sphere* TempRedSphere = new Sphere(glm::vec3(0, 0, -20), 4, glm::vec3(1, 0.32, 0.36), glm::vec3(1, 0.32, 0.36), glm::vec3(0.5f, 0.5f, 0.5f), 128);
-	Sphere* TempYellowSphere = new Sphere(glm::vec3(5, -1, -15), 2, glm::vec3(0.9, 0.76, 0.46), glm::vec3(0.9, 0.76, 0.46), glm::vec3(0.5f, 0.5f, 0.5f), 128);
-	Sphere* TempLightBlueSphere = new Sphere(glm::vec3(5, 0, -25), 3, glm::vec3(0.65, 0.77, 0.97), glm::vec3(0.65, 0.77, 0.97), glm::vec3(0.5f, 0.5f, 0.5f), 128);
-	Sphere* TempLightGreySphere = new Sphere(glm::vec3(-5.5, 0, -15), 3, glm::vec3(0.9, 0.9, 0.9), glm::vec3(0.9, 0.9, 0.9), glm::vec3(0.5f, 0.5f, 0.5f), 128);
+	Sphere* TempRedSphere = new Sphere(glm::vec3(0.0f, 0.0f, -20.0f), 4.0f, glm::vec3(1.0f, 0.32f, 0.36f), glm::vec3(1.0f, 0.32f, 0.36f), glm::vec3(0.5f, 0.5f, 0.5f), 128.0f);
+	Sphere* TempYellowSphere = new Sphere(glm::vec3(5.0f, -1.0f, -15.0f), 2.0f, glm::vec3(0.9f, 0.76f, 0.46f), glm::vec3(0.9f, 0.76f, 0.46f), glm::vec3(0.5f, 0.5f, 0.5f), 128.0f);
+	Sphere* TempLightBlueSphere = new Sphere(glm::vec3(5.0f, 0.0f, -25.0f), 3.0f, glm::vec3(0.65f, 0.77f, 0.97f), glm::vec3(0.65f, 0.77f, 0.97f), glm::vec3(0.5f, 0.5f, 0.5f), 128.0f);
+	Sphere* TempLightGreySphere = new Sphere(glm::vec3(-5.5f, 0.0f, -15.0f), 3.0f, glm::vec3(0.9f, 0.9f, 0.9f), glm::vec3(0.9f, 0.9f, 0.9f), glm::vec3(0.5f, 0.5f, 0.5f), 128.0f);
 
-	Plane* TempPlane = new Plane(glm::vec3(0, -4, -20), glm::vec3(0, 1, 0), glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(0.5f, 0.5f, 0.5f), 128);
-	CR_Shapes.push_back(TempRedSphere);
-	CR_Shapes.push_back(TempYellowSphere);
-	CR_Shapes.push_back(TempLightBlueSphere);
-	CR_Shapes.push_back(TempLightGreySphere);
-	CR_Shapes.push_back(TempPlane);
+	Plane* TempPlane = new Plane(glm::vec3(0.0f, -4.0f, -20.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(0.5f, 0.5f, 0.5f), 128.0f);
+	CR_ActiveObjects.push_back(TempRedSphere);
+	CR_ActiveObjects.push_back(TempYellowSphere);
+	CR_ActiveObjects.push_back(TempLightBlueSphere);
+	CR_ActiveObjects.push_back(TempLightGreySphere);
+	CR_ActiveObjects.push_back(TempPlane);
 
-	CR_MainCamera = new Camera(glm::vec3(0, 0, 5), glm::vec3(0, 0, -1), 1.0f, 0.25f);
-	CR_PointLight = new Light(glm::vec3(0, 20, 0), glm::vec3(1.0f, 1.0f, 1.0f));
+	CR_MainCamera = new Camera(glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, -1.0f), 1.0f, 0.25f);
+	CR_PointLight = new Light(glm::vec3(0.0f, 20.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 	CR_AmbientColor = glm::vec3(0.1f, 0.1f, 0.1f);
 	CR_AreaLightSize = glm::vec3(9.0f, 0.1f, 9.0f);
-	CR_SoftShadowSamples = 32;
+
+	//LoadMesh("../teapot_simple_smooth.obj", glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), 128.0f);
+	//ToggleMesh();
 
 	Render();
 }
@@ -95,8 +97,8 @@ void Raytracer::Configure()
 glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, HitInfo& _Hit, int _CurrentDepth, int _MaxDepth)
 {
 	glm::vec3 CombinedColor = CR_AmbientColor;
-	for (int i = 0; i < CR_Shapes.size(); ++i) {
-		CR_Shapes[i]->CheckIntersection(_RayOrigin, _RayDirection, _Hit);
+	for (int i = 0; i < CR_ActiveObjects.size(); ++i) {
+		CR_ActiveObjects[i]->CheckIntersection(_RayOrigin, _RayDirection, _Hit);
 	}
 
 	if (_Hit.HitStatus) {
@@ -114,8 +116,8 @@ glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, Hit
 		if (CR_Effects_Hard_Shadows) {
 			HitInfo LightRayHit;
 			glm::vec3 LightRayOrigin = _Hit.IntPoint + _Hit.Normal * 1e-4f;
-			for (int i = 0; i < CR_Shapes.size(); ++i) {
-				CR_Shapes[i]->CheckIntersection(LightRayOrigin, LightDir, LightRayHit);
+			for (int i = 0; i < CR_ActiveObjects.size(); ++i) {
+				CR_ActiveObjects[i]->CheckIntersection(LightRayOrigin, LightDir, LightRayHit);
 			}
 
 			if (LightRayHit.HitStatus && LightRayHit.Distance > 0.0f && LightRayHit.Distance < glm::length(LightDirFull)) {
@@ -142,8 +144,8 @@ glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, Hit
 				LightDirFull = AreaLights[s]->Position - _Hit.IntPoint;
 				LightDir = glm::normalize(LightDirFull);
 
-				for (int i = 0; i < CR_Shapes.size(); ++i) {
-					CR_Shapes[i]->CheckIntersection(LightRayOrigin, LightDir, LightRayHit);
+				for (int i = 0; i < CR_ActiveObjects.size(); ++i) {
+					CR_ActiveObjects[i]->CheckIntersection(LightRayOrigin, LightDir, LightRayHit);
 				}
 				if (LightRayHit.HitStatus && LightRayHit.Distance > 0 && LightRayHit.Distance < glm::length(LightDirFull)) {
 					AreaLightHits.push_back(LightRayHit);
@@ -217,23 +219,6 @@ void Raytracer::Render()
 				Uint32 ColorBitValue = 0;
 				HitInfo Hit;
 				glm::vec3 CombinedColor = Raytrace(CR_MainCamera->Position, RayDirection, Hit, 1, 4);
-				//if (CR_Effects_Soft_Shadows) {
-				//	float CellsPerRow = glm::floor(glm::sqrt(CR_SoftShadowSamples));
-				//	float CellSizeX = (CR_PointLight->Position.x - CR_AreaLightSize.x) / glm::floor(glm::sqrt(CR_SoftShadowSamples));
-				//	float CellSizeZ = (CR_PointLight->Position.z - CR_AreaLightSize.z) / glm::floor(glm::sqrt(CR_SoftShadowSamples));
-				//	for (int z = 0; z < CellsPerRow; ++z) {
-				//		for (int x = 0; x < CellsPerRow; ++x) {
-				//			CR_AreaLights.push_back(new Light(glm::vec3(CR_PointLight->Position.x + x * CellSizeX, CR_PointLight->Position.y, CR_PointLight->Position.z + z * CellSizeZ), CR_PointLight->ColorIntensity));
-				//		}
-				//	}
-				//	std::vector<HitInfo> AreaLightHits;
-				//}
-				//for (Light* L : CR_AreaLights) {
-				//	delete L;
-				//}
-				//if (CR_Effects_Reflections && Hit.SpecularC != glm::vec3(0.0f,0.0f,0.0f)) {
-				//	CombinedColor += Hit.SpecularC * Raytrace(Hit.ReflRayOrigin, Hit.ReflRayDir, Hit, 1, 2);
-				//}
 				ColorBitValue = SDL_MapRGB(BufferSurface->format, glm::clamp(CombinedColor.r * 255.0f, 0.0f, 255.0f), glm::clamp(CombinedColor.g * 255.0f, 0.0f, 255.0f), glm::clamp(CombinedColor.b * 255.0f, 0.0f, 255.0f));
 				PixelAddress[LineOffset + x] = ColorBitValue;
 			}
@@ -294,22 +279,22 @@ void Raytracer::Update()
 					CR_CurrentState = INACTIVE;
 					break;
 				case SDLK_w:
-					CR_MainCamera->Position.z -= 1.0f;			
+					CR_MainCamera->SetPosition(CR_MainCamera->Position + glm::vec3(0.0f, 0.0f, -1.0f));
 					std::cout << "Hotkey Pressed: [W]" << std::endl;
 					Render();
 					break;
 				case SDLK_a:
-					CR_MainCamera->Position.x -=  1.0f;
+					CR_MainCamera->SetPosition(CR_MainCamera->Position + glm::vec3(-1.0f, 0.0f, 0.0f));
 					std::cout << "Hotkey Pressed: [A]" << std::endl;
 					Render();	
 					break;
 				case SDLK_d:
-					CR_MainCamera->Position.x += 1.0f;
+					CR_MainCamera->SetPosition(CR_MainCamera->Position + glm::vec3(1.0f, 0.0f, 0.0f));
 					std::cout << "Hotkey Pressed: [D]" << std::endl;
 					Render();
 					break;
 				case SDLK_s:
-					CR_MainCamera->Position.z += 1.0f;
+					CR_MainCamera->SetPosition(CR_MainCamera->Position + glm::vec3(0.0f, 0.0f, 1.0f));
 					std::cout << "Hotkey Pressed: [S]" << std::endl;
 					Render();
 					break;
@@ -365,23 +350,36 @@ bool Raytracer::LoadMesh(const char* _FilePath, glm::vec3 _AmbienctC, glm::vec3 
 		return false;
 	}
 	Mesh* TempMesh = new Mesh(MeshVertices, MeshNormals, _AmbienctC, _DiffuseC, _SpecularC, _Shininess);
-	CR_Shapes.push_back(TempMesh);
+	CR_InactiveObjects.push_back(TempMesh);
 	
 	return true;
 }
 
 bool Raytracer::ToggleMesh()
 {
-	//Mesh* TempMesh = new Mesh();
-	//
+	CR_Render_Meshes = !CR_Render_Meshes;
+	Mesh* TempMesh = new Mesh();
+	//std::vector<Shape*>::iterator startIt = CR_Shapes.begin();
+	//for (; startIt != CR_Shapes.end(); ++startIt) {
+	//	if (*startIt == TempMesh) {
+	//		CR_InactiveObjects.push_back(*startIt);
+	//		CR_Shapes.erase(startIt, CR_Shapes.end());
+	//	}
+	//}
+
+	//auto e = std::find(CR_Shapes.begin(), CR_Shapes.end(), (Mesh*))
 	//CR_InactiveObjects.push_back();
-	return 1;
+	return CR_Render_Meshes;
 }
 
 void Raytracer::Deactivate()
 {
-	for (int i = 0; i < CR_Shapes.size(); ++i) {
-		delete CR_Shapes[i];
+	for (int i = 0; i < CR_ActiveObjects.size(); ++i) {
+		delete CR_ActiveObjects[i];
+	}
+
+	for (int i = 0; i < CR_InactiveObjects.size(); ++i) {
+		delete CR_InactiveObjects[i];
 	}
 
 	CR_PointLight = NULL;

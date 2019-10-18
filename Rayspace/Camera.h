@@ -17,7 +17,7 @@
 class Camera
 {
 public:
-	Camera(glm::vec3 _Position, glm::vec3 _Direction, GLfloat _MovementSpeed, GLfloat _MouseSensitivity);
+	Camera(glm::vec3 _Position, glm::vec3 _Direction, float _MovementSpeed, float _MouseSensitivity);
 	~Camera();
 
 	glm::vec3 Position;
@@ -28,20 +28,14 @@ public:
 	glm::vec3 Right = glm::vec3(1,0,0);
 	glm::vec3 WorldUp = glm::vec3(0, 1, 0);
 
-	GLfloat Yaw;
-	GLfloat Pitch;
+	float Yaw;
+	float Pitch;
 
-	GLfloat MovementSpeed;
-	GLfloat MouseSensitivity;
-
-	void Update();
+	float MovementSpeed;
+	float MouseSensitivity;
 
 	glm::vec3 GetPosition();
 	void SetPosition(glm::vec3 _ModifiedPos);
-
-	glm::mat4 Projection;
-	glm::mat4 View;
-	glm::mat4 Model;
 
 	float AspectRatio;
 };

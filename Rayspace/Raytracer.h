@@ -60,7 +60,7 @@ public:
 	float CR_SoftShadowSamples = 64;
 	glm::vec3 CR_AreaLightSize;
 
-	std::vector<Shape*> CR_Shapes;
+	std::vector<Shape*> CR_ActiveObjects;
 	std::vector<Shape*> CR_InactiveObjects;
 
 	SDL_Window* CR_MainWindow = NULL;
@@ -74,6 +74,8 @@ public:
 	float CR_ScreenAspectRatio;
 
 	glm::vec3 Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, HitInfo& _HitInfo, int _CurrentDepth, int _MaxDepth);
+
+	bool CR_Render_Meshes = false;
 
 	bool CR_Effects_Hard_Shadows = true;
 	bool CR_Effects_Soft_Shadows = true;

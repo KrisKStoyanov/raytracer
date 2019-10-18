@@ -12,10 +12,6 @@ Camera::~Camera()
 {
 }
 
-void Camera::Update()
-{
-}
-
 glm::vec3 Camera::GetPosition()
 {
 	return Position;
