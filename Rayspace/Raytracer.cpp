@@ -181,11 +181,13 @@ void Raytracer::Start()
 			}
 		}
 
-		if (CR_ScreenWidthPadding > 0 || CR_ScreenHeigthPadding > 0) {
-			float PaddingWidth = CR_ScreenWidthPadding > 0 ? CR_ScreenWidthPadding : CR_ThreadedSurfaceWidth;
-			float PaddingHeight = CR_ScreenHeigthPadding > 0 ? CR_ScreenHeigthPadding : CR_ThreadedSurfaceHeight;
-			SDL_Surface* PaddingSurface = SDL_CreateRGBSurface(0, PaddingWidth * CR_TotalThreadCount, PaddingHeight * CR_TotalThreadCount, 32, RMask, GMask, BMask, AMask);
-			RenderToSurface(PaddingSurface, CR_ScreenSurface->w - PaddingWidth, 0);
+		if (CR_ScreenWidthPadding > 0) {
+			SDL_Surface* PaddingSurface = SDL_CreateRGBSurface(0, CR_ScreenWidthPadding * CR_TotalThreadCount, CR_ThreadedSurfaceHeight * CR_TotalThreadCount, 32, RMask, GMask, BMask, AMask);
+			RenderToSurface(PaddingSurface, CR_ScreenSurface->w - CR_ScreenWidthPadding, 0);
+		}
+		if (CR_ScreenHeigthPadding > 0) {
+			SDL_Surface* PaddingSurface = SDL_CreateRGBSurface(0, CR_ThreadedSurfaceWidth * CR_TotalThreadCount, CR_ScreenHeigthPadding * CR_TotalThreadCount, 32, RMask, GMask, BMask, AMask);
+			RenderToSurface(PaddingSurface, 0, CR_ScreenSurface->h - CR_ScreenHeigthPadding);
 		}
 
 		//delete ThreadPool;
