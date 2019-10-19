@@ -34,11 +34,11 @@ public:
 
 	bool Init(const char* _WindowName, int _WindowWidth, int _WindowHeight);
 	void Setup();
-	void ScreenSetup();
 	void CheckSDLError(int line);
 	void ConfigEnv();
+	void ConfigScreen();
 	void Start();
-	bool RenderToSurface(SDL_Surface* _TargetSurface, int _xIndex, int _yIndex);
+	bool RenderToSurface(SDL_Surface* _TargetSurface, int _SurfaceRectX, int _SurfaceRectY);
 	void Update();
 	void Deactivate();
 

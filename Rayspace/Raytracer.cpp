@@ -43,10 +43,11 @@ void Raytracer::Setup()
 {
 	CR_Active = true;
 	ConfigEnv();
-	ScreenSetup();
+	ConfigScreen();
+	Start();
 }
 
-void Raytracer::ScreenSetup()
+void Raytracer::ConfigScreen()
 {
 	CR_ScreenSurface = SDL_GetWindowSurface(CR_MainWindow);
 	CR_ScreenSurfaceHeightDet = 1.f / CR_ScreenSurface->h;
@@ -66,28 +67,12 @@ void Raytracer::ScreenSetup()
 		if (CR_ThreadedSurfaceHeight * CR_TotalThreadCount != CR_ScreenSurface->h)
 			CR_ScreenHeigthPadding = CR_ScreenSurface->h - CR_ThreadedSurfaceHeight * CR_TotalThreadCount;
 		}
-	Start();
-}
-
-void Raytracer::CheckSDLError(int line)
-{
-	std::string ErrorInfo = SDL_GetError();
-
-	if (!ErrorInfo.empty()) {
-		std::cout << "SDL Error: " << ErrorInfo << std::endl;
-
-		if (line != -1) {
-			std::cout << "Line: " << line << std::endl;
-		}
-
-		SDL_ClearError();
-	}
 }
 
 void Raytracer::ConfigEnv()
 {
 	Sphere* TempRedSphere = new Sphere(glm::vec3(0.0f, 0.0f, -20.0f), 4.0f, glm::vec3(1.0f, 0.32f, 0.36f), glm::vec3(1.0f, 0.32f, 0.36f), glm::vec3(0.8f, 0.8f, 0.8f), 128.0f);
-	Sphere* TempYellowSphere = new Sphere(glm::vec3(5.0f, -1.0f, -15.0f), 2.0f, glm::vec3(0.9f, 0.76f, 0.46f), glm::vec3(0.9f, 0.76f, 0.46f), glm::vec3(0.9f, 0.9f, 0.9f), 128.0f);
+	Sphere* TempYellowSphere = new Sphere(glm::vec3(5.0f, -1.0f, -15.0f), 2.0f, glm::vec3(0.9f, 0.76f, 0.46f), glm::vec3(0.9f, 0.76f, 0.46f), glm::vec3(0.8f, 0.8f, 0.8f), 128.0f);
 	Sphere* TempLightBlueSphere = new Sphere(glm::vec3(5.0f, 0.0f, -25.0f), 3.0f, glm::vec3(0.65f, 0.77f, 0.97f), glm::vec3(0.65f, 0.77f, 0.97f), glm::vec3(0.5f, 0.5f, 0.5f), 128.0f);
 	Sphere* TempLightGreySphere = new Sphere(glm::vec3(-5.5f, 0.0f, -15.0f), 3.0f, glm::vec3(0.9f, 0.9f, 0.9f), glm::vec3(0.9f, 0.9f, 0.9f), glm::vec3(0.5f, 0.5f, 0.5f), 128.0f);
 
@@ -180,18 +165,20 @@ glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, int
 void Raytracer::Start()
 {
 	auto StartTime = std::chrono::high_resolution_clock::now();
-	if (!CR_Multicore_Rendering) {
+	if (CR_Multicore_Rendering) {
 
 		std::thread* ThreadPool = new std::thread[CR_TotalThreadCount];
 		SDL_Surface* ThreadedSurfaces = new SDL_Surface[CR_TotalThreadCount];
 
-		for (unsigned int i = 0; i < CR_TotalThreadCount; ++i) {
-			ThreadedSurfaces[i] = *SDL_CreateRGBSurface(0, CR_ThreadedSurfaceWidth, CR_ThreadedSurfaceHeight, 32, RMask, GMask, BMask, AMask);
-			ThreadPool[i] = std::thread(&Raytracer::RenderToSurface, this, &ThreadedSurfaces[i], 0, 0);
-		}
-	
-		for (unsigned int i = 0; i < CR_TotalThreadCount; ++i) {
-			ThreadPool[i].join();
+		for (int i = 0; i < CR_TotalThreadCount; ++i) {
+			for (unsigned int y = 0; y < CR_TotalThreadCount; ++y) {
+				ThreadedSurfaces[y] = *SDL_CreateRGBSurface(0, CR_ThreadedSurfaceWidth, CR_ThreadedSurfaceHeight, 32, RMask, GMask, BMask, AMask);
+				ThreadPool[y] = std::thread(&Raytracer::RenderToSurface, this, &ThreadedSurfaces[y], i * CR_ThreadedSurfaceWidth, y * CR_ThreadedSurfaceHeight);
+			}
+
+			for (unsigned int i = 0; i < CR_TotalThreadCount; ++i) {
+				ThreadPool[i].join();
+			}
 		}
 
 		//for (int i = 0; i < CR_TotalThreadCount; ++i) {
@@ -229,7 +216,7 @@ void Raytracer::Start()
 	Update();
 }
 
-bool Raytracer::RenderToSurface(SDL_Surface* _TargetSurface, int _xIndex, int _yIndex)
+bool Raytracer::RenderToSurface(SDL_Surface* _TargetSurface, int _SurfaceRectX, int _SurfaceRectY)
 {
 	if (_TargetSurface != NULL) {
 		auto StartTime = std::chrono::high_resolution_clock::now();
@@ -253,7 +240,7 @@ bool Raytracer::RenderToSurface(SDL_Surface* _TargetSurface, int _xIndex, int _y
 
 			LineOffset = y * OffsetMod;
 
-			PixelNormalizedy = (y + 0.5f) * CR_ScreenSurfaceHeightDet;
+			PixelNormalizedy = (y + _SurfaceRectY + 0.5f) * CR_ScreenSurfaceHeightDet;
 			PixelRemappedy = 1.0f - 2.0f * PixelNormalizedy;
 			PixelCameray = PixelRemappedy * CR_FOV_Angle;
 
@@ -262,7 +249,7 @@ bool Raytracer::RenderToSurface(SDL_Surface* _TargetSurface, int _xIndex, int _y
 				/*Uint8* PixelAddress = (Uint8*)ImageSurface->pixels + y * ImageSurface->pitch + x * ImageSurface->format->BytesPerPixel;*/
 				/*int LineOffset = y * (ImageSurface->pitch / sizeof(uint32_t));*/
 
-				PixelNormalizedx = (x + 0.5f) * CR_ScreenSurfaceWidthDet;
+				PixelNormalizedx = (x + _SurfaceRectX + 0.5f) * CR_ScreenSurfaceWidthDet;
 				PixelRemappedx = (2.0f * PixelNormalizedx - 1.0f) * CR_ScreenAspectRatio;
 				PixelCamerax = PixelRemappedx * CR_FOV_Angle;
 
@@ -279,16 +266,20 @@ bool Raytracer::RenderToSurface(SDL_Surface* _TargetSurface, int _xIndex, int _y
 			SDL_UnlockSurface(_TargetSurface);
 		}
 
+		SDL_Rect SurfaceDestRect;
+		SurfaceDestRect.x = _SurfaceRectX;
+		SurfaceDestRect.y = _SurfaceRectY;
+
 		SDL_Surface* OptimizedSurface = SDL_ConvertSurface(_TargetSurface, CR_ScreenSurface->format, 0);
-		SDL_BlitSurface(OptimizedSurface, NULL, CR_ScreenSurface, NULL);
+		SDL_BlitSurface(OptimizedSurface, NULL, CR_ScreenSurface, &SurfaceDestRect);
 		SDL_FreeSurface(OptimizedSurface);
 		OptimizedSurface = NULL;
 		delete OptimizedSurface;
 		SDL_UpdateWindowSurface(CR_MainWindow);
 
-		SDL_FreeSurface(_TargetSurface);
-		_TargetSurface = NULL;
-		delete _TargetSurface;
+		//SDL_FreeSurface(_TargetSurface);
+		//_TargetSurface = NULL;
+		//delete _TargetSurface;
 
 		auto EndTime = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<float> elapsed_seconds = EndTime - StartTime;
@@ -311,11 +302,13 @@ void Raytracer::Update()
 			if (CurrentEvent.type == SDL_WINDOWEVENT) {
 				switch (CurrentEvent.window.event) {
 				case SDL_WINDOWEVENT_RESIZED:
-					ScreenSetup();
+					ConfigScreen();
+					Start();
 					break;
 
 				case SDL_WINDOWEVENT_MAXIMIZED:
-					ScreenSetup();
+					ConfigScreen();
+					Start();
 					break;
 				default:
 					break;
@@ -404,7 +397,8 @@ void Raytracer::ToggleReflections()
 void Raytracer::ToggleMulticoreRendering()
 {
 	CR_Multicore_Rendering = !CR_Multicore_Rendering;
-	ScreenSetup();
+	ConfigScreen();
+	Start();
 }
 
 bool Raytracer::LoadMesh(const char* _FilePath, glm::vec3 _AmbienctC, glm::vec3 _DiffuseC, glm::vec3 _SpecularC, float _Shininess)
@@ -424,6 +418,7 @@ void Raytracer::ToggleMeshRendering()
 {
 	CR_Mesh_Rendering = !CR_Mesh_Rendering;
 	ConfigEnv();
+	Start();
 	//Mesh* TempMesh = new Mesh();
 	//std::vector<Shape*>::iterator startIt = CR_Shapes.begin();
 	//for (; startIt != CR_Shapes.end(); ++startIt) {
@@ -460,5 +455,18 @@ void Raytracer::Deactivate()
 	SDL_Quit();
 }
 
+void Raytracer::CheckSDLError(int line)
+{
+	std::string ErrorInfo = SDL_GetError();
 
+	if (!ErrorInfo.empty()) {
+		std::cout << "SDL Error: " << ErrorInfo << std::endl;
+
+		if (line != -1) {
+			std::cout << "Line: " << line << std::endl;
+		}
+
+		SDL_ClearError();
+	}
+}
 
