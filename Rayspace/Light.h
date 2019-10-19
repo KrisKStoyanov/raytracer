@@ -17,6 +17,7 @@ class Light
 {
 public:
 	Light(glm::vec3 _Position, glm::vec3 _ColorInt);
+	Light();
 	~Light();
 
 	glm::vec3 Position;

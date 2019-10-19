@@ -6,6 +6,10 @@ Light::Light(glm::vec3 _Position, glm::vec3 _ColorInt)
 	ColorIntensity = _ColorInt;
 }
 
+Light::Light()
+{
+}
+
 Light::~Light()
 {
 }

@@ -42,8 +42,8 @@ bool Raytracer::Init(const char* _WindowName, int _WindowWidth, int _WindowHeigh
 void Raytracer::Setup()
 {
 	CR_Active = true;
-	ConfigEnv();
 	ConfigScreen();
+	ConfigEnv();
 	Start();
 }
 
@@ -182,14 +182,18 @@ void Raytracer::Start()
 		}
 
 		if (CR_ScreenWidthPadding > 0) {
-			SDL_Surface* PaddingSurface = SDL_CreateRGBSurface(0, CR_ScreenWidthPadding * CR_TotalThreadCount, CR_ThreadedSurfaceHeight * CR_TotalThreadCount, 32, RMask, GMask, BMask, AMask);
-			RenderToSurface(PaddingSurface, CR_ScreenSurface->w - CR_ScreenWidthPadding, 0);
+			SDL_Surface* WidthPaddingSurface = SDL_CreateRGBSurface(0, CR_ScreenWidthPadding * CR_TotalThreadCount, CR_ThreadedSurfaceHeight * CR_TotalThreadCount, 32, RMask, GMask, BMask, AMask);
+			RenderToSurface(WidthPaddingSurface, CR_ScreenSurface->w - CR_ScreenWidthPadding, 0);
+			SDL_FreeSurface(WidthPaddingSurface);
 		}
 		if (CR_ScreenHeigthPadding > 0) {
-			SDL_Surface* PaddingSurface = SDL_CreateRGBSurface(0, CR_ThreadedSurfaceWidth * CR_TotalThreadCount, CR_ScreenHeigthPadding * CR_TotalThreadCount, 32, RMask, GMask, BMask, AMask);
-			RenderToSurface(PaddingSurface, 0, CR_ScreenSurface->h - CR_ScreenHeigthPadding);
+			SDL_Surface* HeightPaddingSurface = SDL_CreateRGBSurface(0, CR_ThreadedSurfaceWidth * CR_TotalThreadCount, CR_ScreenHeigthPadding * CR_TotalThreadCount, 32, RMask, GMask, BMask, AMask);
+			RenderToSurface(HeightPaddingSurface, 0, CR_ScreenSurface->h - CR_ScreenHeigthPadding);
+			SDL_FreeSurface(HeightPaddingSurface);
 		}
 
+		delete[] ThreadPool;
+		delete[] ThreadedSurfaces;
 		//delete ThreadPool;
 		//if (CR_ScreenWidthPadding > 0 || CR_ScreenHeigthPadding > 0) {
 		//	SDL_Surface* PaddingSurfaces = new SDL_Surface[CR_TotalThreadCount];
@@ -298,6 +302,7 @@ bool Raytracer::RenderToSurface(SDL_Surface* _TargetSurface, int _SurfaceRectX, 
 		SDL_Surface* OptimizedSurface = SDL_ConvertSurface(_TargetSurface, CR_ScreenSurface->format, 0);
 		SDL_BlitSurface(OptimizedSurface, NULL, CR_ScreenSurface, &SurfaceDestRect);
 		SDL_UpdateWindowSurface(CR_MainWindow);
+		SDL_FreeSurface(OptimizedSurface);
 		auto EndTime = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<float> elapsed_seconds = EndTime - StartTime;
 		std::cout << "Surface rendering time: " << elapsed_seconds.count() << " seconds." << std::endl;
@@ -434,6 +439,7 @@ bool Raytracer::LoadMesh(const char* _FilePath, glm::vec3 _AmbienctC, glm::vec3 
 void Raytracer::ToggleMeshRendering()
 {
 	CR_Mesh_Rendering = !CR_Mesh_Rendering;
+	ConfigScreen();
 	ConfigEnv();
 	Start();
 	//Mesh* TempMesh = new Mesh();
@@ -465,8 +471,6 @@ void Raytracer::Deactivate()
 	delete CR_MainCamera;
 	SDL_FreeSurface(SDL_GetWindowSurface(CR_MainWindow));
 	SDL_FreeSurface(CR_ScreenSurface);
-	CR_ScreenSurface = NULL;
-	delete CR_ScreenSurface;
 	SDL_DestroyWindow(CR_MainWindow);
 
 	SDL_Quit();
