@@ -10,7 +10,7 @@ Raytracer::~Raytracer()
 
 bool Raytracer::Init(const char* _WindowName, int _WindowWidth, int _WindowHeight)
 {
-	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
+	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 		std::cout << "WARNING: SDL could not initialize!" << std::endl;
 		CheckSDLError(__LINE__);
 		return 0;
@@ -170,16 +170,39 @@ void Raytracer::Start()
 		std::thread* ThreadPool = new std::thread[CR_TotalThreadCount];
 		SDL_Surface* ThreadedSurfaces = new SDL_Surface[CR_TotalThreadCount];
 
-		for (int i = 0; i < CR_TotalThreadCount; ++i) {
+		for (unsigned int x = 0; x < CR_TotalThreadCount; ++x) {
 			for (unsigned int y = 0; y < CR_TotalThreadCount; ++y) {
 				ThreadedSurfaces[y] = *SDL_CreateRGBSurface(0, CR_ThreadedSurfaceWidth, CR_ThreadedSurfaceHeight, 32, RMask, GMask, BMask, AMask);
-				ThreadPool[y] = std::thread(&Raytracer::RenderToSurface, this, &ThreadedSurfaces[y], i * CR_ThreadedSurfaceWidth, y * CR_ThreadedSurfaceHeight);
+				ThreadPool[y] = std::thread(&Raytracer::RenderToSurface, this, &ThreadedSurfaces[y], x * CR_ThreadedSurfaceWidth, y * CR_ThreadedSurfaceHeight);
 			}
 
 			for (unsigned int i = 0; i < CR_TotalThreadCount; ++i) {
 				ThreadPool[i].join();
 			}
 		}
+
+		if (CR_ScreenWidthPadding > 0 || CR_ScreenHeigthPadding > 0) {
+			float PaddingWidth = CR_ScreenWidthPadding > 0 ? CR_ScreenWidthPadding : CR_ThreadedSurfaceWidth;
+			float PaddingHeight = CR_ScreenHeigthPadding > 0 ? CR_ScreenHeigthPadding : CR_ThreadedSurfaceHeight;
+			SDL_Surface* PaddingSurface = SDL_CreateRGBSurface(0, PaddingWidth * CR_TotalThreadCount, PaddingHeight * CR_TotalThreadCount, 32, RMask, GMask, BMask, AMask);
+			RenderToSurface(PaddingSurface, CR_ScreenSurface->w - PaddingWidth, 0);
+		}
+
+		//delete ThreadPool;
+		//if (CR_ScreenWidthPadding > 0 || CR_ScreenHeigthPadding > 0) {
+		//	SDL_Surface* PaddingSurfaces = new SDL_Surface[CR_TotalThreadCount];
+		//	float PaddedWidth = CR_ScreenWidthPadding > 0 ? CR_ScreenWidthPadding : CR_ThreadedSurfaceWidth;
+		//	float PaddedHeight = CR_ScreenHeigthPadding > 0 ? CR_ScreenHeigthPadding : CR_ThreadedSurfaceHeight;
+		//	for (int x = 0; x < CR_TotalThreadCount; ++x) {
+		//		for (unsigned int y = 0; y < CR_TotalThreadCount; ++y) {
+		//			PaddingSurfaces[y] = *SDL_CreateRGBSurface(0, PaddedWidth, PaddedHeight, 32, RMask, GMask, BMask, AMask);
+		//			ThreadPool[y] = std::thread(&Raytracer::RenderToSurface, this, &ThreadedSurfaces[y], x * PaddedWidth, y * PaddedHeight);
+		//		}
+		//	}
+		//	for (unsigned int i = 0; i < CR_TotalThreadCount; ++i) {
+		//		ThreadPool[i].join();
+		//	}
+		//}
 
 		//for (int i = 0; i < CR_TotalThreadCount; ++i) {
 		//	SDL_Surface* ThreadedSurface = SDL_CreateRGBSurface(0, CR_ThreadedSurfaceWidth, CR_ThreadedSurfaceHeight, 32, RMask, GMask, BMask, AMask);
@@ -269,18 +292,10 @@ bool Raytracer::RenderToSurface(SDL_Surface* _TargetSurface, int _SurfaceRectX, 
 		SDL_Rect SurfaceDestRect;
 		SurfaceDestRect.x = _SurfaceRectX;
 		SurfaceDestRect.y = _SurfaceRectY;
-
+		
 		SDL_Surface* OptimizedSurface = SDL_ConvertSurface(_TargetSurface, CR_ScreenSurface->format, 0);
 		SDL_BlitSurface(OptimizedSurface, NULL, CR_ScreenSurface, &SurfaceDestRect);
-		SDL_FreeSurface(OptimizedSurface);
-		OptimizedSurface = NULL;
-		delete OptimizedSurface;
 		SDL_UpdateWindowSurface(CR_MainWindow);
-
-		//SDL_FreeSurface(_TargetSurface);
-		//_TargetSurface = NULL;
-		//delete _TargetSurface;
-
 		auto EndTime = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<float> elapsed_seconds = EndTime - StartTime;
 		std::cout << "Surface rendering time: " << elapsed_seconds.count() << " seconds." << std::endl;
