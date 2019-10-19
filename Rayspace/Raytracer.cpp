@@ -35,15 +35,38 @@ bool Raytracer::Init(const char* _WindowName, int _WindowWidth, int _WindowHeigh
 	BMask = 0x00ff0000;
 	AMask = 0xff000000;
 #endif
-	Start();
+	Setup();
 	return 1;
 }
 
-void Raytracer::Start()
+void Raytracer::Setup()
 {
 	CR_Active = true;
-	Configure();
-	Update();
+	ConfigEnv();
+	ScreenSetup();
+}
+
+void Raytracer::ScreenSetup()
+{
+	CR_ScreenSurface = SDL_GetWindowSurface(CR_MainWindow);
+	CR_ScreenSurfaceHeightDet = 1.f / CR_ScreenSurface->h;
+	CR_ScreenSurfaceWidthDet = 1.f / CR_ScreenSurface->w;
+	CR_ScreenAspectRatio = CR_ScreenSurface->w * CR_ScreenSurfaceHeightDet;
+	CR_FOV_Angle = glm::tan(glm::radians(60.0f) * 0.5f);
+	CR_ScreenWidthPadding = 0;
+	CR_ScreenHeigthPadding = 0;
+	if (CR_Multicore_Rendering) {
+		CR_TotalThreadCount = std::thread::hardware_concurrency();
+		CR_AvailableThreadCount = CR_TotalThreadCount;
+		CR_ThreadedSurfaceWidth = glm::floor(CR_ScreenSurface->w / CR_TotalThreadCount);
+		CR_ThreadedSurfaceHeight = glm::floor(CR_ScreenSurface->h / CR_TotalThreadCount);
+		if (CR_ThreadedSurfaceWidth * CR_TotalThreadCount != CR_ScreenSurface->w) {
+			CR_ScreenWidthPadding = CR_ScreenSurface->w - CR_ThreadedSurfaceWidth * CR_TotalThreadCount;
+		}
+		if (CR_ThreadedSurfaceHeight * CR_TotalThreadCount != CR_ScreenSurface->h)
+			CR_ScreenHeigthPadding = CR_ScreenSurface->h - CR_ThreadedSurfaceHeight * CR_TotalThreadCount;
+		}
+	Start();
 }
 
 void Raytracer::CheckSDLError(int line)
@@ -61,7 +84,7 @@ void Raytracer::CheckSDLError(int line)
 	}
 }
 
-void Raytracer::Configure()
+void Raytracer::ConfigEnv()
 {
 	Sphere* TempRedSphere = new Sphere(glm::vec3(0.0f, 0.0f, -20.0f), 4.0f, glm::vec3(1.0f, 0.32f, 0.36f), glm::vec3(1.0f, 0.32f, 0.36f), glm::vec3(0.8f, 0.8f, 0.8f), 128.0f);
 	Sphere* TempYellowSphere = new Sphere(glm::vec3(5.0f, -1.0f, -15.0f), 2.0f, glm::vec3(0.9f, 0.76f, 0.46f), glm::vec3(0.9f, 0.76f, 0.46f), glm::vec3(0.9f, 0.9f, 0.9f), 128.0f);
@@ -76,7 +99,7 @@ void Raytracer::Configure()
 	CR_ActiveObjects.push_back(TempLightGreySphere);
 	CR_ActiveObjects.push_back(TempPlane);
 
-	CR_MainCamera = new Camera(glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, -1.0f), 1.0f, 0.25f);
+	CR_MainCamera = new Camera(glm::vec3(0.0f, 0.0f, 5.0f));
 	CR_PointLight = new Light(glm::vec3(0.0f, 20.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 	CR_AmbientColor = glm::vec3(0.1f, 0.1f, 0.1f);
 	CR_AreaLightSize = glm::vec3(9.0f, 0.1f, 9.0f);
@@ -92,11 +115,6 @@ void Raytracer::Configure()
 	if (CR_Mesh_Rendering) {
 		LoadMesh("../teapot_simple_smooth.obj", glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.5f, 0.5f, 0.5f), 128.0f);
 	}
-	
-	//LoadMesh("../dragon.obj", glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.5f, 0.5f, 0.5f), 128.0f);
-	//LoadMesh("../bunny.obj", glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.5f, 0.5f, 0.5f), 128.0f);
-
-	Render();
 }
 
 glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, int _CurrentDepth, int _MaxDepth)
@@ -159,76 +177,126 @@ glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, int
 	return HitColor;
 }
 
-void Raytracer::Render()
+void Raytracer::Start()
 {
 	auto StartTime = std::chrono::high_resolution_clock::now();
+	if (!CR_Multicore_Rendering) {
 
-	SDL_Surface* ScreenSurface = SDL_GetWindowSurface(CR_MainWindow);
-	SDL_Surface* BufferSurface = SDL_CreateRGBSurface(0, ScreenSurface->w, ScreenSurface->h, 32, RMask, GMask, BMask, AMask);
+		std::thread* ThreadPool = new std::thread[CR_TotalThreadCount];
+		SDL_Surface* ThreadedSurfaces = new SDL_Surface[CR_TotalThreadCount];
 
-	if (BufferSurface != NULL) {
-		uint32_t* PixelAddress = (uint32_t*)BufferSurface->pixels;
-		if (SDL_MUSTLOCK(BufferSurface)) {
-			SDL_LockSurface(BufferSurface);
+		for (unsigned int i = 0; i < CR_TotalThreadCount; ++i) {
+			ThreadedSurfaces[i] = *SDL_CreateRGBSurface(0, CR_ThreadedSurfaceWidth, CR_ThreadedSurfaceHeight, 32, RMask, GMask, BMask, AMask);
+			ThreadPool[i] = std::thread(&Raytracer::RenderToSurface, this, &ThreadedSurfaces[i], 0, 0);
 		}
-		float ScreenSurfaceHeightDet = 1.f / ScreenSurface->h;
-		float ScreenAspectRatio = ScreenSurface->w * ScreenSurfaceHeightDet;
-		int OffsetMod = BufferSurface->pitch * 0.25f;
-		float FOV_Angle = glm::tan(glm::radians(45.0f) * 0.5f);
+	
+		for (unsigned int i = 0; i < CR_TotalThreadCount; ++i) {
+			ThreadPool[i].join();
+		}
 
-		for (int y = 0; y < ScreenSurface->h; ++y) {
+		//for (int i = 0; i < CR_TotalThreadCount; ++i) {
+		//	SDL_Surface* ThreadedSurface = SDL_CreateRGBSurface(0, CR_ThreadedSurfaceWidth, CR_ThreadedSurfaceHeight, 32, RMask, GMask, BMask, AMask);
+		//	std::thread Thr1 (&Raytracer::RenderToSurface, this, ThreadedSurface, 0, 0);
+		//	//std::thread Thr2 (&Raytracer::RenderToSurface, this, CR_ScreenSurface, 0, 0);
 
-			int LineOffset = y * OffsetMod;
+		//	Thr1.join();
+		//	//Thr2.join();
+		//}
+		//for (int i = 0; i < ThreadedSurfaces.size(); ++i) {
+		//	RenderToSurface(ThreadedSurfaces[i], i * CR_ScreenWidthPerThread, i * CR_ScreenHeightPerThread);
+		//}
+		//if (ThreadedSurfaces.back()->w != CR_ScreenSurface->w || ThreadedSurfaces.back()->h != CR_ScreenSurface->h) {
+		//	SDL_Surface* BufferSurface = SDL_CreateRGBSurface(0, CR_ScreenSurface->w, CR_ScreenSurface->h, 32, RMask, GMask, BMask, AMask);
+		//	RenderToSurface(BufferSurface, 0, 0);
+		//}
+		//int ThreadIndex = 0;
+		//for (int x = 0; x < CR_ScreenSurface->w; x += CR_ScreenWidthPerThread) {
+		//	ThreadIndex++;
+		//	for (int y = 0; y < CR_ScreenSurface->h; y += CR_ScreenHeightPerThread) {
+		//		RenderToSurface(ThreadedSurfaces[ThreadIndex], 0, 0);
+		//	}
+		//}
+	}
+	else {
+		SDL_Surface* BufferSurface = SDL_CreateRGBSurface(0, CR_ScreenSurface->w, CR_ScreenSurface->h, 32, RMask, GMask, BMask, AMask);
+		RenderToSurface(BufferSurface, 0, 0);
+	}
 
-			float PixelNormalizedy = (y + 0.5f) * ScreenSurfaceHeightDet;
-			float PixelRemappedy = 1.0f - 2.0f * PixelNormalizedy;
-			float PixelCameray = PixelRemappedy * FOV_Angle;
+	auto EndTime = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<float> elapsed_seconds = EndTime - StartTime;
+	std::cout << "Total elapsed time: " << elapsed_seconds.count() << " seconds." << std::endl;
 
-			for (int x = 0; x < ScreenSurface->w; ++x) {
+	Update();
+}
+
+bool Raytracer::RenderToSurface(SDL_Surface* _TargetSurface, int _xIndex, int _yIndex)
+{
+	if (_TargetSurface != NULL) {
+		auto StartTime = std::chrono::high_resolution_clock::now();
+
+		if (SDL_MUSTLOCK(_TargetSurface)) {
+			SDL_LockSurface(_TargetSurface);
+		}
+		uint32_t* PixelAddress = (uint32_t*)_TargetSurface->pixels;
+		int OffsetMod = _TargetSurface->pitch * 0.25f;
+		int LineOffset;
+
+		float PixelNormalizedy;
+		float PixelRemappedy;
+		float PixelCameray;
+
+		float PixelNormalizedx;
+		float PixelRemappedx;
+		float PixelCamerax;
+
+		for (int y = 0; y < _TargetSurface->h; ++y) {
+
+			LineOffset = y * OffsetMod;
+
+			PixelNormalizedy = (y + 0.5f) * CR_ScreenSurfaceHeightDet;
+			PixelRemappedy = 1.0f - 2.0f * PixelNormalizedy;
+			PixelCameray = PixelRemappedy * CR_FOV_Angle;
+
+			for (int x = 0; x < _TargetSurface->w; ++x) {
 
 				/*Uint8* PixelAddress = (Uint8*)ImageSurface->pixels + y * ImageSurface->pitch + x * ImageSurface->format->BytesPerPixel;*/
-				/*int LineOffset = y * (ImageSurface->pitch / sizeof(uint32_t));*/				
+				/*int LineOffset = y * (ImageSurface->pitch / sizeof(uint32_t));*/
 
-				float PixelNormalizedx = (x + 0.5f) * (1.f / ScreenSurface->w);
-				float PixelRemappedx = (2.0f * PixelNormalizedx - 1.0f) * ScreenAspectRatio;
-				float PixelCamerax = PixelRemappedx * FOV_Angle;
+				PixelNormalizedx = (x + 0.5f) * CR_ScreenSurfaceWidthDet;
+				PixelRemappedx = (2.0f * PixelNormalizedx - 1.0f) * CR_ScreenAspectRatio;
+				PixelCamerax = PixelRemappedx * CR_FOV_Angle;
 
 				glm::vec3 PixelCameraSpacePos(PixelCamerax + CR_MainCamera->Position.x, PixelCameray + CR_MainCamera->Position.y, CR_MainCamera->Position.z - 1.0f);
 				glm::vec3 RayDirection = glm::normalize(PixelCameraSpacePos - CR_MainCamera->Position);
 
 				glm::vec3 HitColor = Raytrace(CR_MainCamera->Position, RayDirection, 0, 4);
-				Uint32 ColorBitValue = SDL_MapRGB(BufferSurface->format, glm::clamp(HitColor.r * 255.0f, 0.0f, 255.0f), glm::clamp(HitColor.g * 255.0f, 0.0f, 255.0f), glm::clamp(HitColor.b * 255.0f, 0.0f, 255.0f));
+				Uint32 ColorBitValue = SDL_MapRGB(_TargetSurface->format, glm::clamp(HitColor.r * 255.0f, 0.0f, 255.0f), glm::clamp(HitColor.g * 255.0f, 0.0f, 255.0f), glm::clamp(HitColor.b * 255.0f, 0.0f, 255.0f));
 				PixelAddress[LineOffset + x] = ColorBitValue;
 			}
 		}
 
-		if (SDL_MUSTLOCK(BufferSurface)) {
-			SDL_UnlockSurface(BufferSurface);
+		if (SDL_MUSTLOCK(_TargetSurface)) {
+			SDL_UnlockSurface(_TargetSurface);
 		}
 
-		SDL_Surface* OptimizedSurface = SDL_ConvertSurface(BufferSurface, ScreenSurface->format, 0);
-		SDL_BlitSurface(OptimizedSurface, NULL, ScreenSurface, NULL);
+		SDL_Surface* OptimizedSurface = SDL_ConvertSurface(_TargetSurface, CR_ScreenSurface->format, 0);
+		SDL_BlitSurface(OptimizedSurface, NULL, CR_ScreenSurface, NULL);
 		SDL_FreeSurface(OptimizedSurface);
 		OptimizedSurface = NULL;
 		delete OptimizedSurface;
-		SDL_FreeSurface(BufferSurface);
-		BufferSurface = NULL;
-		delete BufferSurface;
 		SDL_UpdateWindowSurface(CR_MainWindow);
-		SDL_FreeSurface(ScreenSurface);
-		ScreenSurface = NULL;
-		delete ScreenSurface;
-		//std::cout << "Unoptimized Format: " << SDL_GetPixelFormatName(CR_BufferSurface->format->format) << std::endl;
-		//std::cout << "Optmized Format: " << SDL_GetPixelFormatName(OptimizedSurface->format->format) << std::endl;
-	}
-	else {
-		std::cout << "WARNING: Unable to render surface! " << std::endl;
-		CheckSDLError(__LINE__);
-	}
 
-	auto EndTime = std::chrono::high_resolution_clock::now();
-	std::chrono::duration<float> elapsed_seconds = EndTime - StartTime;
-	std::cout << "Elapsed time: " << elapsed_seconds.count() << " seconds." << std::endl;
+		SDL_FreeSurface(_TargetSurface);
+		_TargetSurface = NULL;
+		delete _TargetSurface;
+
+		auto EndTime = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<float> elapsed_seconds = EndTime - StartTime;
+		std::cout << "Surface rendering time: " << elapsed_seconds.count() << " seconds." << std::endl;
+
+		return true;
+	}
+	return false;
 }
 
 void Raytracer::Update()
@@ -243,11 +311,11 @@ void Raytracer::Update()
 			if (CurrentEvent.type == SDL_WINDOWEVENT) {
 				switch (CurrentEvent.window.event) {
 				case SDL_WINDOWEVENT_RESIZED:
-					Render();
+					ScreenSetup();
 					break;
 
 				case SDL_WINDOWEVENT_MAXIMIZED:
-					Render();
+					ScreenSetup();
 					break;
 				default:
 					break;
@@ -262,22 +330,22 @@ void Raytracer::Update()
 				case SDLK_w:
 					CR_MainCamera->SetPosition(CR_MainCamera->Position + glm::vec3(0.0f, 0.0f, -1.0f));
 					std::cout << "Hotkey Pressed: [W]" << std::endl;
-					Render();
+					Start();
 					break;
 				case SDLK_a:
 					CR_MainCamera->SetPosition(CR_MainCamera->Position + glm::vec3(-1.0f, 0.0f, 0.0f));
 					std::cout << "Hotkey Pressed: [A]" << std::endl;
-					Render();	
+					Start();
 					break;
 				case SDLK_d:
 					CR_MainCamera->SetPosition(CR_MainCamera->Position + glm::vec3(1.0f, 0.0f, 0.0f));
 					std::cout << "Hotkey Pressed: [D]" << std::endl;
-					Render();
+					Start();
 					break;
 				case SDLK_s:
 					CR_MainCamera->SetPosition(CR_MainCamera->Position + glm::vec3(0.0f, 0.0f, 1.0f));
 					std::cout << "Hotkey Pressed: [S]" << std::endl;
-					Render();
+					Start();
 					break;
 				case SDLK_1:
 					std::cout << "Hotkey Pressed: [1]" << std::endl;
@@ -294,10 +362,15 @@ void Raytracer::Update()
 					ToggleReflections();
 					std::cout << "Reflections: " << CR_Effects_Reflections << std::endl;
 					break;
-				case SDLK_4:
-					std::cout << "Hotkey Pressed: [4]" << std::endl;
+				case SDLK_t:
+					std::cout << "Hotkey Pressed: [T]" << std::endl;
 					ToggleMeshRendering();
 					std::cout << "Mesh Rendering: " << CR_Mesh_Rendering << std::endl;
+					break;
+				case SDLK_m:
+					std::cout << "Hotkey Pressed: [M]" << std::endl;
+					ToggleMulticoreRendering();
+					std::cout << "Multicore Rendering: " << CR_Multicore_Rendering << std::endl;
 					break;
 				default:
 					break;
@@ -312,20 +385,26 @@ void Raytracer::ToggleHardShadows()
 {
 	CR_Effects_Hard_Shadows = !CR_Effects_Hard_Shadows;
 	CR_Effects_Soft_Shadows = false;
-	Render();
+	Start();
 }
 
 void Raytracer::ToggleSoftShadows()
 {
 	CR_Effects_Soft_Shadows = !CR_Effects_Soft_Shadows;
 	CR_Effects_Hard_Shadows = false;
-	Render();
+	Start();
 }
 
 void Raytracer::ToggleReflections()
 {
 	CR_Effects_Reflections = !CR_Effects_Reflections;
-	Render();
+	Start();
+}
+
+void Raytracer::ToggleMulticoreRendering()
+{
+	CR_Multicore_Rendering = !CR_Multicore_Rendering;
+	ScreenSetup();
 }
 
 bool Raytracer::LoadMesh(const char* _FilePath, glm::vec3 _AmbienctC, glm::vec3 _DiffuseC, glm::vec3 _SpecularC, float _Shininess)
@@ -344,7 +423,7 @@ bool Raytracer::LoadMesh(const char* _FilePath, glm::vec3 _AmbienctC, glm::vec3 
 void Raytracer::ToggleMeshRendering()
 {
 	CR_Mesh_Rendering = !CR_Mesh_Rendering;
-	Configure();
+	ConfigEnv();
 	//Mesh* TempMesh = new Mesh();
 	//std::vector<Shape*>::iterator startIt = CR_Shapes.begin();
 	//for (; startIt != CR_Shapes.end(); ++startIt) {
@@ -373,9 +452,9 @@ void Raytracer::Deactivate()
 	CR_MainCamera = NULL;
 	delete CR_MainCamera;
 	SDL_FreeSurface(SDL_GetWindowSurface(CR_MainWindow));
-	//SDL_FreeSurface(CR_ScreenSurface);
-	//CR_ScreenSurface = NULL;
-	//delete CR_ScreenSurface;
+	SDL_FreeSurface(CR_ScreenSurface);
+	CR_ScreenSurface = NULL;
+	delete CR_ScreenSurface;
 	SDL_DestroyWindow(CR_MainWindow);
 
 	SDL_Quit();

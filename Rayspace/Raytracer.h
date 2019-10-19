@@ -12,6 +12,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <chrono>
+#include <thread>
 
 #include "Sphere.h"
 #include "Plane.h"
@@ -32,10 +33,12 @@ public:
 	bool CR_Active = false;
 
 	bool Init(const char* _WindowName, int _WindowWidth, int _WindowHeight);
-	void Start();
+	void Setup();
+	void ScreenSetup();
 	void CheckSDLError(int line);
-	void Configure();
-	void Render();
+	void ConfigEnv();
+	void Start();
+	bool RenderToSurface(SDL_Surface* _TargetSurface, int _xIndex, int _yIndex);
 	void Update();
 	void Deactivate();
 
@@ -68,6 +71,23 @@ public:
 	void ToggleHardShadows();
 	void ToggleSoftShadows();
 	void ToggleReflections();
+	void ToggleMulticoreRendering();
+
+	SDL_Surface* CR_ScreenSurface = NULL;
+	bool CR_Multicore_Rendering = true;
+	unsigned int CR_TotalThreadCount;
+	unsigned int CR_AvailableThreadCount;
+	unsigned int CR_ThreadedSurfaceWidth;
+	unsigned int CR_ThreadedSurfaceHeight;
+
+	float CR_ScreenAspectRatio;
+	float CR_FOV_Angle;
+
+	float CR_ScreenSurfaceHeightDet;
+	float CR_ScreenSurfaceWidthDet;
+
+	unsigned int CR_ScreenWidthPadding;
+	unsigned int CR_ScreenHeigthPadding;
 
 	bool LoadMesh(const char* _FilePath, glm::vec3 _AmbienctC, glm::vec3 _DiffuseC, glm::vec3 _SpecularC, float _Shininess);
 };

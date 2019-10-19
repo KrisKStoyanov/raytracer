@@ -1,11 +1,8 @@
 #include "Camera.h"
 
-Camera::Camera(glm::vec3 _Position, glm::vec3 _Direction, GLfloat _MovementSpeed, GLfloat _MouseSensitivity)
+Camera::Camera(glm::vec3 _Position)
 {
 	Position = _Position;
-	Direction = _Direction;
-	MovementSpeed = _MovementSpeed;
-	MouseSensitivity = _MouseSensitivity;
 }
 
 Camera::~Camera()
