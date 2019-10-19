@@ -53,12 +53,16 @@ public:
 	SDL_Window* CR_MainWindow = NULL;
 	Camera* CR_MainCamera = NULL;
 
-	glm::vec3 Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, int _CurrentDepth, int _MaxDepth);
+	glm::vec3 Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, int _CurrentDepth = 0, int _MaxDepth = 2);
 
 	bool CR_Mesh_Rendering = false;
 	bool CR_Effects_Hard_Shadows = true;
 	bool CR_Effects_Soft_Shadows = true;
 	bool CR_Effects_Reflections = true;
+
+	bool CR_Rendered_Hard_Shadows = false;
+	bool CR_Rendered_Soft_Shadows = false;	
+	bool CR_Rendered_Reflections = false;
 
 	void ToggleMeshRendering();
 	void ToggleHardShadows();

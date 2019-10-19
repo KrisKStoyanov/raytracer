@@ -54,10 +54,10 @@ bool Sphere::CheckIntersection(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, Hi
 			_HitInfo.Normal = Normal;
 			_HitInfo.ExitPoint = ExitPoint;
 
-			_HitInfo.ReflRayDir = _RayDirection - 2 * glm::dot(glm::normalize(_RayDirection), _HitInfo.Normal) * _HitInfo.Normal;
+			_HitInfo.ReflRayDir = _RayDirection - 2 * glm::dot(_RayDirection, _HitInfo.Normal) * _HitInfo.Normal;
 			_HitInfo.ReflRayOrigin = _HitInfo.IntPoint + _HitInfo.Normal * 1e-4f;
 
-			_HitInfo.HitStatus = true;
+			_HitInfo.Intersected = true;
 		}
 		return true;
 	}

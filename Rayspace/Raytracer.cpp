@@ -63,12 +63,12 @@ void Raytracer::CheckSDLError(int line)
 
 void Raytracer::Configure()
 {
-	Sphere* TempRedSphere = new Sphere(glm::vec3(0.0f, 0.0f, -20.0f), 4.0f, glm::vec3(1.0f, 0.32f, 0.36f), glm::vec3(1.0f, 0.32f, 0.36f), glm::vec3(0.5f, 0.5f, 0.5f), 128.0f);
-	Sphere* TempYellowSphere = new Sphere(glm::vec3(5.0f, -1.0f, -15.0f), 2.0f, glm::vec3(0.9f, 0.76f, 0.46f), glm::vec3(0.9f, 0.76f, 0.46f), glm::vec3(0.5f, 0.5f, 0.5f), 128.0f);
-	Sphere* TempLightBlueSphere = new Sphere(glm::vec3(5.0f, 0.0f, -25.0f), 3.0f, glm::vec3(0.65f, 0.77f, 0.97f), glm::vec3(0.65f, 0.77f, 0.97f), glm::vec3(0.5f, 0.5f, 0.5f), 128.0f);
-	Sphere* TempLightGreySphere = new Sphere(glm::vec3(-5.5f, 0.0f, -15.0f), 3.0f, glm::vec3(0.9f, 0.9f, 0.9f), glm::vec3(0.9f, 0.9f, 0.9f), glm::vec3(0.5f, 0.5f, 0.5f), 128.0f);
+	Sphere* TempRedSphere = new Sphere(glm::vec3(0.0f, 0.0f, -20.0f), 4.0f, glm::vec3(1.0f, 0.32f, 0.36f), glm::vec3(1.0f, 0.32f, 0.36f), glm::vec3(0.8f, 0.8f, 0.8f), 128.0f);
+	Sphere* TempYellowSphere = new Sphere(glm::vec3(5.0f, -1.0f, -15.0f), 2.0f, glm::vec3(0.9f, 0.76f, 0.46f), glm::vec3(0.9f, 0.76f, 0.46f), glm::vec3(0.8f, 0.8f, 0.8f), 128.0f);
+	Sphere* TempLightBlueSphere = new Sphere(glm::vec3(5.0f, 0.0f, -25.0f), 3.0f, glm::vec3(0.65f, 0.77f, 0.97f), glm::vec3(0.65f, 0.77f, 0.97f), glm::vec3(0.8f, 0.8f, 0.8f), 128.0f);
+	Sphere* TempLightGreySphere = new Sphere(glm::vec3(-5.5f, 0.0f, -15.0f), 3.0f, glm::vec3(0.9f, 0.9f, 0.9f), glm::vec3(0.9f, 0.9f, 0.9f), glm::vec3(0.8f, 0.8f, 0.8f), 128.0f);
 
-	Plane* TempPlane = new Plane(glm::vec3(0.0f, -4.0f, -20.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(0.5f, 0.5f, 0.5f), 128.0f);
+	Plane* TempPlane = new Plane(glm::vec3(0.0f, -4.0f, -20.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(0.8f, 0.8f, 0.8f), 128.0f);
 	CR_ActiveObjects.clear();
 	CR_ActiveObjects.push_back(TempRedSphere);
 	CR_ActiveObjects.push_back(TempYellowSphere);
@@ -80,7 +80,7 @@ void Raytracer::Configure()
 	CR_PointLight = new Light(glm::vec3(0.0f, 20.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 	CR_AmbientColor = glm::vec3(0.1f, 0.1f, 0.1f);
 	CR_AreaLightSize = glm::vec3(9.0f, 0.1f, 9.0f);
-
+		
 	float CellsPerRow = glm::floor(glm::sqrt(CR_SoftShadowSamples));
 	float CellSizeX = (CR_PointLight->Position.x - CR_AreaLightSize.x) / CellsPerRow;
 	float CellSizeZ = (CR_PointLight->Position.z - CR_AreaLightSize.z) / CellsPerRow;
@@ -101,13 +101,13 @@ void Raytracer::Configure()
 
 glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, int _CurrentDepth, int _MaxDepth)
 {
-	glm::vec3 CombinedColor = CR_AmbientColor;
+	glm::vec3 HitColor = CR_AmbientColor;
 	HitInfo Hit;
 	for (int i = 0; i < CR_ActiveObjects.size(); ++i) {
 		CR_ActiveObjects[i]->CheckIntersection(_RayOrigin, _RayDirection, Hit);
 	}
 
-	if (Hit.HitStatus) {
+	if (Hit.Intersected) {
 		glm::vec3 AmbientColor = Hit.AmbientC * CR_AmbientColor;
 		glm::vec3 LightDirFull = CR_PointLight->Position - Hit.IntPoint;
 		glm::vec3 LightDir = glm::normalize(LightDirFull);
@@ -117,7 +117,7 @@ glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, int
 		glm::vec3 LightReflDir = glm::normalize(2 * -DiffuseScalar * Hit.Normal + LightDir);
 		float SpecularScalar = glm::dot(LightReflDir, _RayDirection);
 		glm::vec3 SpecularColor = Hit.SpecularC * CR_PointLight->ColorIntensity * glm::pow(glm::max(0.0f, SpecularScalar), Hit.Shininess);
-		glm::vec3 ShadingColor = CombinedColor = AmbientColor + DiffuseColor + SpecularColor;
+		glm::vec3 ShadingColor = HitColor = AmbientColor + DiffuseColor + SpecularColor;
 
 		if (CR_Effects_Hard_Shadows) {
 			HitInfo LightRayHit;
@@ -126,8 +126,8 @@ glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, int
 				CR_ActiveObjects[i]->CheckIntersection(LightRayOrigin, LightDir, LightRayHit);
 			}
 
-			if (LightRayHit.HitStatus && LightRayHit.Distance > 0.0f && LightRayHit.Distance < glm::length(LightDirFull)) {
-				CombinedColor = AmbientColor;
+			if (LightRayHit.Intersected && LightRayHit.Distance > 0.0f && LightRayHit.Distance < glm::length(LightDirFull)) {
+				HitColor = AmbientColor;
 			}
 		}
 
@@ -143,19 +143,20 @@ glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, int
 				for (int i = 0; i < CR_ActiveObjects.size(); ++i) {
 					CR_ActiveObjects[i]->CheckIntersection(LightRayOrigin, LightDir, LightRayHit);
 				}
-				if (LightRayHit.HitStatus && LightRayHit.Distance > 0 && LightRayHit.Distance < glm::length(LightDirFull)) {
+				if (LightRayHit.Intersected && LightRayHit.Distance > 0 && LightRayHit.Distance < glm::length(LightDirFull)) {
 					AreaLightInts++;
 				}
 			}
 			float AreaLightsCount = CR_AreaLights.size();
-			CombinedColor = (AreaLightInts * AmbientColor + (AreaLightsCount - AreaLightInts) * ShadingColor) * 1.0f / AreaLightsCount;
+			HitColor = (AreaLightInts * AmbientColor + (AreaLightsCount - AreaLightInts) * ShadingColor) * (1.f / AreaLightsCount);
 		}
+
 		if (CR_Effects_Reflections && _CurrentDepth < _MaxDepth) {
-			return CombinedColor + Hit.SpecularC * Raytrace(Hit.ReflRayOrigin, Hit.ReflRayDir, _CurrentDepth += 1, _MaxDepth);
+			return HitColor + Hit.SpecularC * Raytrace(Hit.ReflRayOrigin, Hit.ReflRayDir, _CurrentDepth +=1, _MaxDepth);
 		}
 	}
 	
-	return CombinedColor;
+	return HitColor;
 }
 
 void Raytracer::Render()
@@ -170,10 +171,11 @@ void Raytracer::Render()
 		if (SDL_MUSTLOCK(BufferSurface)) {
 			SDL_LockSurface(BufferSurface);
 		}
-		float ScreenSurfaceHeightDet = 1.0f / ScreenSurface->h;
+		float ScreenSurfaceHeightDet = 1.f / ScreenSurface->h;
 		float ScreenAspectRatio = ScreenSurface->w * ScreenSurfaceHeightDet;
 		int OffsetMod = BufferSurface->pitch * 0.25f;
 		float FOV_Angle = glm::tan(glm::radians(45.0f) * 0.5f);
+
 		for (int y = 0; y < ScreenSurface->h; ++y) {
 
 			int LineOffset = y * OffsetMod;
@@ -187,15 +189,15 @@ void Raytracer::Render()
 				/*Uint8* PixelAddress = (Uint8*)ImageSurface->pixels + y * ImageSurface->pitch + x * ImageSurface->format->BytesPerPixel;*/
 				/*int LineOffset = y * (ImageSurface->pitch / sizeof(uint32_t));*/				
 
-				float PixelNormalizedx = (x + 0.5f) * (1.0f / ScreenSurface->w);
+				float PixelNormalizedx = (x + 0.5f) * (1.f / ScreenSurface->w);
 				float PixelRemappedx = (2.0f * PixelNormalizedx - 1.0f) * ScreenAspectRatio;
 				float PixelCamerax = PixelRemappedx * FOV_Angle;
 
 				glm::vec3 PixelCameraSpacePos(PixelCamerax + CR_MainCamera->Position.x, PixelCameray + CR_MainCamera->Position.y, CR_MainCamera->Position.z - 1.0f);
 				glm::vec3 RayDirection = glm::normalize(PixelCameraSpacePos - CR_MainCamera->Position);
 
-				glm::vec3 CombinedColor = Raytrace(CR_MainCamera->Position, RayDirection, 1, 4);
-				Uint32 ColorBitValue = SDL_MapRGB(BufferSurface->format, glm::clamp(CombinedColor.r * 255.0f, 0.0f, 255.0f), glm::clamp(CombinedColor.g * 255.0f, 0.0f, 255.0f), glm::clamp(CombinedColor.b * 255.0f, 0.0f, 255.0f));
+				glm::vec3 HitColor = Raytrace(CR_MainCamera->Position, RayDirection, 0, 2);
+				Uint32 ColorBitValue = SDL_MapRGB(BufferSurface->format, glm::clamp(HitColor.r * 255.0f, 0.0f, 255.0f), glm::clamp(HitColor.g * 255.0f, 0.0f, 255.0f), glm::clamp(HitColor.b * 255.0f, 0.0f, 255.0f));
 				PixelAddress[LineOffset + x] = ColorBitValue;
 			}
 		}

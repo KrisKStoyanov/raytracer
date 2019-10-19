@@ -1,21 +1,20 @@
-﻿  Main.cpp
-  Raytracer.cpp
+﻿  Raytracer.cpp
 C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(150,26): warning C4244:  'initializing': conversion from 'unsigned __int64' to 'float', possible loss of data
 C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(175,17): warning C4244:  'initializing': conversion from 'float' to 'int', possible loss of data
-C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(198,176): warning C4244:  'argument': conversion from 'genType' to 'Uint8', possible loss of data
-C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(198,176): warning C4244:         with
-C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(198,176): warning C4244:         [
-C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(198,176): warning C4244:             genType=float
-C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(198,176): warning C4244:         ]
-C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(198,124): warning C4244:  'argument': conversion from 'genType' to 'Uint8', possible loss of data
-C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(198,124): warning C4244:         with
-C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(198,124): warning C4244:         [
-C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(198,124): warning C4244:             genType=float
-C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(198,124): warning C4244:         ]
-  Generating Code...
-C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(198,72): warning C4244:  'argument': conversion from 'genType' to 'Uint8', possible loss of data
-C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(198,72): warning C4244:         with
-C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(198,72): warning C4244:         [
-C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(198,72): warning C4244:             genType=float
-C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(198,72): warning C4244:         ]
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(199,176): warning C4244:  'argument': conversion from 'genType' to 'Uint8', possible loss of data
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(199,176): warning C4244:         with
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(199,176): warning C4244:         [
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(199,176): warning C4244:             genType=float
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(199,176): warning C4244:         ]
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(199,124): warning C4244:  'argument': conversion from 'genType' to 'Uint8', possible loss of data
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(199,124): warning C4244:         with
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(199,124): warning C4244:         [
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(199,124): warning C4244:             genType=float
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(199,124): warning C4244:         ]
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(199,72): warning C4244:  'argument': conversion from 'genType' to 'Uint8', possible loss of data
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(199,72): warning C4244:         with
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(199,72): warning C4244:         [
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(199,72): warning C4244:             genType=float
+C:\Users\stoya\source\repos\Rayspace\322COM\Rayspace\Raytracer.cpp(199,72): warning C4244:         ]
+objloader.obj : warning LNK4099: PDB 'vc142.pdb' was not found with 'objloader.obj' or at 'C:\Users\stoya\source\repos\Rayspace\322COM\x64\Debug\vc142.pdb'; linking object as if no debug info
   Rayspace.vcxproj -> C:\Users\stoya\source\repos\Rayspace\322COM\x64\Debug\Rayspace.exe

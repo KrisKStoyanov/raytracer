@@ -31,6 +31,6 @@ public:
 	glm::vec3 ReflRayDir;
 
 	float Distance = 0.0f;
-	bool HitStatus = false;
+	bool Intersected = false;
 };
 
