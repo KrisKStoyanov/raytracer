@@ -15,11 +15,9 @@
 Raytracer RTracer;
 
 int main(int argc, char* argv[]) {
-	if (!RTracer.Init("Rayspace", 800, 600)) {
+	if (!RTracer.Init("Rayspace", 1024, 768)) {
 		return -1;
 	}
-
-	RTracer.Deactivate();
 
 	return 0;
 }

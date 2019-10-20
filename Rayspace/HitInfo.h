@@ -30,6 +30,9 @@ public:
 	glm::vec3 ReflRayOrigin;
 	glm::vec3 ReflRayDir;
 
+	glm::vec3 IncidentRayDir;
+	glm::vec3 IncidentRayOrigin;
+
 	float Distance = 0.0f;
 	bool Intersected = false;
 };

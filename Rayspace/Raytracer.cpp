@@ -58,7 +58,6 @@ void Raytracer::ConfigScreen()
 	CR_ScreenHeigthPadding = 0;
 	CR_TotalThreadCount = std::thread::hardware_concurrency();
 	if (CR_TotalThreadCount > 0 && CR_Multicore_Rendering) {
-		CR_AvailableThreadCount = CR_TotalThreadCount;
 		CR_ThreadedSurfaceWidth = glm::floor(CR_ScreenSurface->w / CR_TotalThreadCount);
 		CR_ThreadedSurfaceHeight = glm::floor(CR_ScreenSurface->h / CR_TotalThreadCount);
 		if (CR_ThreadedSurfaceWidth * CR_TotalThreadCount != CR_ScreenSurface->w) {
@@ -108,34 +107,28 @@ void Raytracer::ConfigEnv()
 	}
 }
 
-glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, int _CurrentDepth, int _MaxDepth)
+glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, const int _CurrentDepth, int _MaxDepth)
 {
 	glm::vec3 HitColor = CR_AmbientColor;
-	HitInfo Hit;
-	for (int i = 0; i < CR_ActiveObjects.size(); ++i) {
-		CR_ActiveObjects[i]->CheckIntersection(_RayOrigin, _RayDirection, Hit);
-	}
+	HitInfo Hit = Raycast(_RayOrigin, _RayDirection);
 
 	if (Hit.Intersected) {
 		glm::vec3 AmbientColor = Hit.AmbientC * CR_AmbientColor;
 		glm::vec3 LightDirFull = CR_PointLight->Position - Hit.IntPoint;
 		glm::vec3 LightDir = glm::normalize(LightDirFull);
-
 		float DiffuseScalar = glm::dot(LightDir, Hit.Normal);
 		glm::vec3 DiffuseColor = Hit.DiffuseC * CR_PointLight->ColorIntensity * glm::max(0.0f, DiffuseScalar);
-		glm::vec3 LightReflDir = glm::normalize(2 * -DiffuseScalar * Hit.Normal + LightDir);
-		float SpecularScalar = glm::dot(LightReflDir, _RayDirection);
+		glm::vec3 LightReflDir = glm::normalize(glm::reflect(LightDir, Hit.Normal));
+		float SpecularScalar = glm::dot(LightReflDir, Hit.IncidentRayDir);
 		glm::vec3 SpecularColor = Hit.SpecularC * CR_PointLight->ColorIntensity * glm::pow(glm::max(0.0f, SpecularScalar), Hit.Shininess);
-		glm::vec3 ShadingColor = HitColor = AmbientColor + DiffuseColor + SpecularColor;
+		glm::vec3 ShadingColor = AmbientColor + DiffuseColor + SpecularColor;
 
 		if (CR_Effects_Hard_Shadows) {
-			HitInfo LightRayHit;
 			glm::vec3 LightRayOrigin = Hit.IntPoint + Hit.Normal * 1e-4f;
-			for (int i = 0; i < CR_ActiveObjects.size(); ++i) {
-				CR_ActiveObjects[i]->CheckIntersection(LightRayOrigin, LightDir, LightRayHit);
-			}
-
-			if (LightRayHit.Intersected && LightRayHit.Distance > 0.0f && LightRayHit.Distance < glm::length(LightDirFull)) {
+			HitInfo LightRayHit = Raycast(LightRayOrigin, LightDir);
+			float LightHitDistSqrd = LightRayHit.Distance * LightRayHit.Distance;
+			float LightDirFullDistSqrd = glm::dot(LightDirFull, LightDirFull);
+			if (LightRayHit.Intersected && LightRayHit.Distance > 0.0f && LightHitDistSqrd < LightDirFullDistSqrd) {
 				HitColor = AmbientColor;
 			}
 		}
@@ -143,16 +136,13 @@ glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, int
 		if (CR_Effects_Soft_Shadows) {
 			float AreaLightInts = 0;
 			glm::vec3 LightRayOrigin = Hit.IntPoint + Hit.Normal * 1e-4f;
-			for (int s = 0; s < CR_AreaLights.size(); ++s) {
-				HitInfo LightRayHit;
-				
+			for (int s = 0; s < CR_AreaLights.size(); ++s) {			
 				LightDirFull = CR_AreaLights[s]->Position - Hit.IntPoint;
 				LightDir = glm::normalize(LightDirFull);
-
-				for (int i = 0; i < CR_ActiveObjects.size(); ++i) {
-					CR_ActiveObjects[i]->CheckIntersection(LightRayOrigin, LightDir, LightRayHit);
-				}
-				if (LightRayHit.Intersected && LightRayHit.Distance > 0 && LightRayHit.Distance < glm::length(LightDirFull)) {
+				HitInfo LightRayHit = Raycast(LightRayOrigin, LightDir);
+				float LightHitDistSqrd = LightRayHit.Distance * LightRayHit.Distance;
+				float LightDirFullDistSqrd = glm::dot(LightDirFull, LightDirFull);
+				if (LightRayHit.Intersected && LightRayHit.Distance > 0 && LightHitDistSqrd < LightDirFullDistSqrd) {
 					AreaLightInts++;
 				}
 			}
@@ -161,20 +151,26 @@ glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, int
 		}
 
 		if (CR_Effects_Reflections && _CurrentDepth < _MaxDepth) {
-			return HitColor + Hit.SpecularC * Raytrace(Hit.ReflRayOrigin, Hit.ReflRayDir, _CurrentDepth +=1, _MaxDepth);
+			return HitColor + Hit.SpecularC * Raytrace(Hit.ReflRayOrigin, Hit.ReflRayDir, _CurrentDepth+1, _MaxDepth);
 		}
 	}
 	
 	return HitColor;
 }
 
+HitInfo Raytracer::Raycast(glm::vec3 _RayOrigin, glm::vec3 _RayDirection)
+{
+	HitInfo Hit;
+	for (int i = 0; i < CR_ActiveObjects.size(); ++i) {
+		CR_ActiveObjects[i]->CheckIntersection(_RayOrigin, _RayDirection, Hit);
+	}
+	return Hit;
+}
+
 void Raytracer::Start()
 {
 	auto StartTime = std::chrono::high_resolution_clock::now();
 	if (CR_Multicore_Rendering) {
-
-		//std::thread* ThreadPool = new std::thread[CR_TotalThreadCount];
-		//SDL_Surface* ThreadedSurfaces = new SDL_Surface[CR_TotalThreadCount];
 
 		std::vector<std::thread*> ThreadPool(CR_TotalThreadCount);
 		std::vector<SDL_Surface*> ThreadedSurfaces(CR_TotalThreadCount);
@@ -183,14 +179,12 @@ void Raytracer::Start()
 			for (unsigned int y = 0; y < CR_TotalThreadCount; ++y) {
 				//ThreadedSurfaces[y] = *SDL_CreateRGBSurface(0, CR_ThreadedSurfaceWidth, CR_ThreadedSurfaceHeight, 32, RMask, GMask, BMask, AMask);
 				ThreadedSurfaces[y] = SDL_CreateRGBSurface(0, CR_ThreadedSurfaceWidth, CR_ThreadedSurfaceHeight, 32, RMask, GMask, BMask, AMask);
-				//ThreadPool[y] = std::thread(&Raytracer::RenderToSurface, this, ThreadedSurfaces[y], x * CR_ThreadedSurfaceWidth, y * CR_ThreadedSurfaceHeight);
 				ThreadPool[y] = new std::thread(&Raytracer::RenderToSurface, this, ThreadedSurfaces[y], x * CR_ThreadedSurfaceWidth, y * CR_ThreadedSurfaceHeight);
+				/*ThreadPool[y] = new std::thread(&Raytracer::RenderToSurface, this, ThreadedSurfaces[y], x * CR_ThreadedSurfaceWidth, y * CR_ThreadedSurfaceHeight);*/
 			}
 
 			for (unsigned int i = 0; i < CR_TotalThreadCount; ++i) {
-				//ThreadPool[i].join();
 				ThreadPool[i]->join();
-				//SDL_FreeSurface(&ThreadedSurfaces[i]);
 			}
 		}	
 
@@ -202,15 +196,6 @@ void Raytracer::Start()
 			SDL_Surface* HeightPaddingSurface = SDL_CreateRGBSurface(0, CR_ThreadedSurfaceWidth * CR_TotalThreadCount, CR_ScreenHeigthPadding * CR_TotalThreadCount, 32, RMask, GMask, BMask, AMask);
 			RenderToSurface(HeightPaddingSurface, 0, CR_ScreenSurface->h - CR_ScreenHeigthPadding);
 		}
-
-		//for (std::thread* T : ThreadPool) {
-		//	delete T;
-		//}
-		//for (SDL_Surface* S : ThreadedSurfaces) {
-		//	SDL_FreeSurface(S);
-		//}
-		//delete[] ThreadPool;
-		//delete[] ThreadedSurfaces;
 	}
 	else {
 		SDL_Surface* BufferSurface = SDL_CreateRGBSurface(0, CR_ScreenSurface->w, CR_ScreenSurface->h, 32, RMask, GMask, BMask, AMask);
@@ -280,10 +265,10 @@ bool Raytracer::RenderToSurface(SDL_Surface* _TargetSurface, int _SurfaceRectX, 
 		SurfaceDestRect.x = _SurfaceRectX;
 		SurfaceDestRect.y = _SurfaceRectY;
 		
-		//SDL_Surface* OptimizedSurface = SDL_ConvertSurface(_TargetSurface, CR_ScreenSurface->format, 0);
+		SDL_Surface* OptimizedSurface = SDL_ConvertSurface(_TargetSurface, CR_ScreenSurface->format, 0);
 		SDL_BlitSurface(_TargetSurface, NULL, CR_ScreenSurface, &SurfaceDestRect);
 		SDL_FreeSurface(_TargetSurface);
-		//SDL_FreeSurface(OptimizedSurface);
+		SDL_FreeSurface(OptimizedSurface);
 		SDL_UpdateWindowSurface(CR_MainWindow);
 		
 		auto RenderEndTime = std::chrono::high_resolution_clock::now();
@@ -377,6 +362,7 @@ void Raytracer::Update()
 		}
 		SDL_UpdateWindowSurface(CR_MainWindow);
 	}
+	Deactivate();
 }
 
 void Raytracer::ToggleHardShadows()

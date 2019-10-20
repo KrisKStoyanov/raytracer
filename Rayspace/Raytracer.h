@@ -54,6 +54,8 @@ public:
 
 	glm::vec3 Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, int _CurrentDepth = 0, int _MaxDepth = 2);
 
+	HitInfo Raycast(glm::vec3 _RayOrigin, glm::vec3 _RayDirection);
+
 	bool CR_Mesh_Rendering = false;
 	bool CR_Effects_Hard_Shadows = true;
 	bool CR_Effects_Soft_Shadows = true;
@@ -72,7 +74,6 @@ public:
 	SDL_Surface* CR_ScreenSurface = NULL;
 	bool CR_Multicore_Rendering = true;
 	unsigned int CR_TotalThreadCount;
-	unsigned int CR_AvailableThreadCount;
 	unsigned int CR_ThreadedSurfaceWidth;
 	unsigned int CR_ThreadedSurfaceHeight;
 
