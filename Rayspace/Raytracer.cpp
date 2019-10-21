@@ -99,7 +99,7 @@ void Raytracer::ConfigEnv()
 	float CellSizeZ = (CR_PointLight->Position.z - CR_AreaLightSize.z) / CellsPerRow;
 	for (int z = 0; z < CellsPerRow; ++z) {
 		for (int x = 0; x < CellsPerRow; ++x) {
-			CR_AreaLights.push_back(new Light(glm::vec3(CR_PointLight->Position.x + x * CellSizeX, CR_PointLight->Position.y, CR_PointLight->Position.z + z * CellSizeZ), CR_PointLight->ColorIntensity));
+			CR_AreaLights.push_back(glm::vec3(CR_PointLight->Position.x + x * CellSizeX, CR_PointLight->Position.y, CR_PointLight->Position.z + z * CellSizeZ));
 		}
 	}
 	if (CR_Mesh_Rendering) {
@@ -121,7 +121,7 @@ glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, con
 		glm::vec3 LightReflDir = glm::normalize(glm::reflect(LightDir, Hit.Normal));
 		float SpecularScalar = glm::dot(LightReflDir, Hit.IncidentRayDir);
 		glm::vec3 SpecularColor = Hit.SpecularC * CR_PointLight->ColorIntensity * glm::pow(glm::max(0.0f, SpecularScalar), Hit.Shininess);
-		glm::vec3 ShadingColor = AmbientColor + DiffuseColor + SpecularColor;
+		glm::vec3 ShadingColor = HitColor = AmbientColor + DiffuseColor + SpecularColor;
 
 		if (CR_Effects_Hard_Shadows) {
 			glm::vec3 LightRayOrigin = Hit.IntPoint + Hit.Normal * 1e-4f;
@@ -137,12 +137,12 @@ glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, con
 			float AreaLightInts = 0;
 			glm::vec3 LightRayOrigin = Hit.IntPoint + Hit.Normal * 1e-4f;
 			for (int s = 0; s < CR_AreaLights.size(); ++s) {			
-				LightDirFull = CR_AreaLights[s]->Position - Hit.IntPoint;
+				LightDirFull = CR_AreaLights[s] - Hit.IntPoint;
 				LightDir = glm::normalize(LightDirFull);
 				HitInfo LightRayHit = Raycast(LightRayOrigin, LightDir);
 				float LightHitDistSqrd = LightRayHit.Distance * LightRayHit.Distance;
 				float LightDirFullDistSqrd = glm::dot(LightDirFull, LightDirFull);
-				if (LightRayHit.Intersected && LightRayHit.Distance > 0 && LightHitDistSqrd < LightDirFullDistSqrd) {
+				if (LightRayHit.Intersected && LightRayHit.Distance > 0.f && LightHitDistSqrd < LightDirFullDistSqrd) {
 					AreaLightInts++;
 				}
 			}
@@ -169,108 +169,84 @@ HitInfo Raytracer::Raycast(glm::vec3 _RayOrigin, glm::vec3 _RayDirection)
 
 void Raytracer::Start()
 {
-	auto StartTime = std::chrono::high_resolution_clock::now();
-	if (CR_Multicore_Rendering) {
+	if (CR_ScreenSurface != NULL) {
+		auto StartTime = std::chrono::high_resolution_clock::now();
 
-		std::vector<std::thread*> ThreadPool(CR_TotalThreadCount);
-		std::vector<SDL_Surface*> ThreadedSurfaces(CR_TotalThreadCount);
-
-		for (unsigned int x = 0; x < CR_TotalThreadCount; ++x) {
-			for (unsigned int y = 0; y < CR_TotalThreadCount; ++y) {
-				//ThreadedSurfaces[y] = *SDL_CreateRGBSurface(0, CR_ThreadedSurfaceWidth, CR_ThreadedSurfaceHeight, 32, RMask, GMask, BMask, AMask);
-				ThreadedSurfaces[y] = SDL_CreateRGBSurface(0, CR_ThreadedSurfaceWidth, CR_ThreadedSurfaceHeight, 32, RMask, GMask, BMask, AMask);
-				ThreadPool[y] = new std::thread(&Raytracer::RenderToSurface, this, ThreadedSurfaces[y], x * CR_ThreadedSurfaceWidth, y * CR_ThreadedSurfaceHeight);
-				/*ThreadPool[y] = new std::thread(&Raytracer::RenderToSurface, this, ThreadedSurfaces[y], x * CR_ThreadedSurfaceWidth, y * CR_ThreadedSurfaceHeight);*/
+		if (CR_TotalThreadCount > 0 && CR_Multicore_Rendering) {
+			std::vector<std::thread> ThreadPool(CR_TotalThreadCount);
+			SDL_Surface* BufferSurface = SDL_CreateRGBSurface(0, CR_ScreenSurface->w, CR_ScreenSurface->h, 32, RMask, GMask, BMask, AMask);
+			uint32_t PixelCount = CR_ScreenSurface->w * CR_ScreenSurface->h;
+			unsigned int PixelsPerThread = (CR_ScreenSurface->w * CR_ScreenSurface->h) / CR_TotalThreadCount;
+			for (int i = 0; i < CR_TotalThreadCount; ++i) {
+				ThreadPool[i] = std::thread(&Raytracer::RenderToSurfaceAsync, this, BufferSurface, PixelsPerThread * i, PixelsPerThread);
+			}
+			for (int i = 0; i < CR_TotalThreadCount; i++) {
+				if(ThreadPool[i].joinable())
+				ThreadPool[i].join();
 			}
 
-			for (unsigned int i = 0; i < CR_TotalThreadCount; ++i) {
-				ThreadPool[i]->join();
-			}
-		}	
+			//uint32_t* Pixels = (uint32_t*)BufferSurface->pixels;
+			//ThreadPool[0] = std::thread(&Raytracer::RenderToSurface, this, BufferSurface);
+			//ThreadPool[0].join();
+			//for (PixelIndex; PixelIndex < PixelCount;) {
+			//	for (int i = 0; i < ThreadPool.size(); ++i) {
+			//		ThreadPool[i] = std::thread(&Raytracer::RenderToSurfaceAsync, this, BufferSurface, PixelIndex += 1);
+			//	}
+			//	for (int i = 0; i < ThreadPool.size(); ++i) {
+			//		ThreadPool[i].join();
+			//	}
+			//}
 
-		if (CR_ScreenWidthPadding > 0) {
-			SDL_Surface* WidthPaddingSurface = SDL_CreateRGBSurface(0, CR_ScreenWidthPadding * CR_TotalThreadCount, CR_ThreadedSurfaceHeight * CR_TotalThreadCount, 32, RMask, GMask, BMask, AMask);
-			RenderToSurface(WidthPaddingSurface, CR_ScreenSurface->w - CR_ScreenWidthPadding, 0);
+			SDL_Surface* OptimizedSurface = SDL_ConvertSurface(BufferSurface, CR_ScreenSurface->format, 0);
+			SDL_BlitSurface(BufferSurface, NULL, CR_ScreenSurface, NULL);
+			SDL_FreeSurface(BufferSurface);
+			SDL_FreeSurface(OptimizedSurface);
+			SDL_UpdateWindowSurface(CR_MainWindow);
 		}
-		if (CR_ScreenHeigthPadding > 0) {
-			SDL_Surface* HeightPaddingSurface = SDL_CreateRGBSurface(0, CR_ThreadedSurfaceWidth * CR_TotalThreadCount, CR_ScreenHeigthPadding * CR_TotalThreadCount, 32, RMask, GMask, BMask, AMask);
-			RenderToSurface(HeightPaddingSurface, 0, CR_ScreenSurface->h - CR_ScreenHeigthPadding);
+		else {
+			SDL_Surface* BufferSurface = SDL_CreateRGBSurface(0, CR_ScreenSurface->w, CR_ScreenSurface->h, 32, RMask, GMask, BMask, AMask);
+			RenderToSurface(BufferSurface);
 		}
-	}
-	else {
-		SDL_Surface* BufferSurface = SDL_CreateRGBSurface(0, CR_ScreenSurface->w, CR_ScreenSurface->h, 32, RMask, GMask, BMask, AMask);
-		RenderToSurface(BufferSurface, 0, 0);
-	}
 
-	auto EndTime = std::chrono::high_resolution_clock::now();
-	std::chrono::duration<float> elapsed_seconds = EndTime - StartTime;
-	std::cout << "Total elapsed time: " << elapsed_seconds.count() << " seconds." << std::endl;
+		auto EndTime = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<float> elapsed_seconds = EndTime - StartTime;
+		std::cout << "Total elapsed time: " << elapsed_seconds.count() << " seconds." << std::endl;
 
-	Update();
+		Update();
+	}
 }
 
-bool Raytracer::RenderToSurface(SDL_Surface* _TargetSurface, int _SurfaceRectX, int _SurfaceRectY)
+bool Raytracer::RenderToSurface(SDL_Surface* _TargetSurface)
 {
 	if (_TargetSurface != NULL) {
 		auto RenderStartTime = std::chrono::high_resolution_clock::now();
+		uint32_t PixelCount = CR_ScreenSurface->w * CR_ScreenSurface->h;
+		uint32_t* PixelCollection = (uint32_t*)_TargetSurface->pixels;
 
-		if (SDL_MUSTLOCK(_TargetSurface)) {
-			SDL_LockSurface(_TargetSurface);
+		for (int i = 0; i < PixelCount; ++i) {
+			unsigned int yIndex = glm::floor(i / CR_ScreenSurface->w);
+			unsigned int xIndex = i - yIndex * CR_ScreenSurface->w;
+			glm::vec3 RayDirection = ComputeIncRayDir(xIndex, yIndex);
+			glm::vec3 HitColor = Raytrace(CR_MainCamera->Position, RayDirection, 0, 4);
+			uint32_t* Pixels = (uint32_t*)_TargetSurface->pixels;
+			Pixels[i] = SDL_MapRGB(_TargetSurface->format, glm::clamp(HitColor.r * 255.0f, 0.0f, 255.0f), glm::clamp(HitColor.g * 255.0f, 0.0f, 255.0f), glm::clamp(HitColor.b * 255.0f, 0.0f, 255.0f));
 		}
-		uint32_t* PixelAddress = (uint32_t*)_TargetSurface->pixels;
-		int OffsetMod = _TargetSurface->pitch * 0.25f;
-		int LineOffset;
+		//int OffsetMod = _TargetSurface->pitch * 0.25f;
+		//int RowOffset;
+		//for (int y = 0; y < _TargetSurface->h; ++y) {
+		//	RowOffset = y * OffsetMod;
+		//	for (int x = 0; x < _TargetSurface->w; ++x) {				
+		//		glm::vec3 RayDirection = ComputeIncRayDir(x, y);
+		//		glm::vec3 HitColor = Raytrace(CR_MainCamera->Position, RayDirection, 0, 4);
+		//		Uint32 ColorBitValue = SDL_MapRGB(_TargetSurface->format, glm::clamp(HitColor.r * 255.0f, 0.0f, 255.0f), glm::clamp(HitColor.g * 255.0f, 0.0f, 255.0f), glm::clamp(HitColor.b * 255.0f, 0.0f, 255.0f));
+		//		PixelCollection[RowOffset + x] = ColorBitValue;
+		//	}
+		//}
 
-		float PixelNormalizedY;
-		float PixelRemappedY;
-		float PixelCameraY;
-
-		float PixelNormalizedX;
-		float PixelRemappedX;
-		float PixelCameraX;
-
-		float PixelCameraSpaceZ = CR_MainCamera->Position.z - 1.0f;
-
-		for (int y = 0; y < _TargetSurface->h; ++y) {
-
-			LineOffset = y * OffsetMod;
-
-			PixelNormalizedY = (y + _SurfaceRectY + 0.5f) * CR_ScreenSurfaceHeightDet;
-			PixelRemappedY = 1.0f - 2.0f * PixelNormalizedY;
-			PixelCameraY = PixelRemappedY * CR_FOV_Angle;
-
-			for (int x = 0; x < _TargetSurface->w; ++x) {
-
-				/*Uint8* PixelAddress = (Uint8*)ImageSurface->pixels + y * ImageSurface->pitch + x * ImageSurface->format->BytesPerPixel;*/
-				/*int LineOffset = y * (ImageSurface->pitch / sizeof(uint32_t));*/
-
-				PixelNormalizedX = (x + _SurfaceRectX + 0.5f) * CR_ScreenSurfaceWidthDet;
-				PixelRemappedX = (2.0f * PixelNormalizedX - 1.0f) * CR_ScreenAspectRatio;
-				PixelCameraX = PixelRemappedX * CR_FOV_Angle;
-
-				glm::vec3 PixelCameraSpacePos(PixelCameraX + CR_MainCamera->Position.x, PixelCameraY + CR_MainCamera->Position.y, PixelCameraSpaceZ);
-				glm::vec3 RayDirection = glm::normalize(PixelCameraSpacePos - CR_MainCamera->Position);
-
-				glm::vec3 HitColor = Raytrace(CR_MainCamera->Position, RayDirection, 0, 4);
-				Uint32 ColorBitValue = SDL_MapRGB(_TargetSurface->format, glm::clamp(HitColor.r * 255.0f, 0.0f, 255.0f), glm::clamp(HitColor.g * 255.0f, 0.0f, 255.0f), glm::clamp(HitColor.b * 255.0f, 0.0f, 255.0f));
-				PixelAddress[LineOffset + x] = ColorBitValue;
-			}
-		}
-
-		if (SDL_MUSTLOCK(_TargetSurface)) {
-			SDL_UnlockSurface(_TargetSurface);
-		}
-
-		SDL_Rect SurfaceDestRect;
-		SurfaceDestRect.x = _SurfaceRectX;
-		SurfaceDestRect.y = _SurfaceRectY;
-		
-		SDL_Surface* OptimizedSurface = SDL_ConvertSurface(_TargetSurface, CR_ScreenSurface->format, 0);
-		SDL_BlitSurface(_TargetSurface, NULL, CR_ScreenSurface, &SurfaceDestRect);
+		SDL_BlitSurface(_TargetSurface, NULL, CR_ScreenSurface, NULL);
 		SDL_FreeSurface(_TargetSurface);
-		SDL_FreeSurface(OptimizedSurface);
 		SDL_UpdateWindowSurface(CR_MainWindow);
-		
+
 		auto RenderEndTime = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<float> elapsed_seconds = RenderEndTime - RenderStartTime;
 		std::cout << "Surface rendering time: " << elapsed_seconds.count() << " seconds." << std::endl;
@@ -278,6 +254,73 @@ bool Raytracer::RenderToSurface(SDL_Surface* _TargetSurface, int _SurfaceRectX, 
 		return true;
 	}
 	return false;
+}
+
+void Raytracer::RenderToSurfaceAsync(SDL_Surface* _TargetSurface, uint32_t _PixelIndex, int _TargetIndex)
+{
+	//auto RenderStartTime = std::chrono::high_resolution_clock::now();
+	_TargetIndex += _PixelIndex;
+	for (_PixelIndex; _PixelIndex < _TargetIndex; ++_PixelIndex) {
+		int OffsetMod = _TargetSurface->pitch * 0.25f;
+		unsigned int yIndex = glm::floor(_PixelIndex / CR_ScreenSurface->w);
+		unsigned int xIndex = _PixelIndex - yIndex * CR_ScreenSurface->w;
+		glm::vec3 RayDirection = ComputeIncRayDir(xIndex, yIndex);
+		glm::vec3 HitColor = Raytrace(CR_MainCamera->Position, RayDirection, 0, 4);
+		uint32_t* Pixels = (uint32_t*)_TargetSurface->pixels;
+		Pixels[_PixelIndex] = SDL_MapRGB(_TargetSurface->format, glm::clamp(HitColor.r * 255.0f, 0.0f, 255.0f), glm::clamp(HitColor.g * 255.0f, 0.0f, 255.0f), glm::clamp(HitColor.b * 255.0f, 0.0f, 255.0f));
+	}
+
+	//SDL_Surface* OptimizedSurface = SDL_ConvertSurface(_TargetSurface, CR_ScreenSurface->format, 0);
+	//SDL_BlitSurface(OptimizedSurface, NULL, CR_ScreenSurface, NULL);
+	//SDL_FreeSurface(_TargetSurface);
+	//SDL_FreeSurface(OptimizedSurface);
+	//SDL_UpdateWindowSurface(CR_MainWindow);
+	//for (int i = 0; i < PixelCount; ++i) {
+		//if (i > CR_ScreenSurface->w) {
+		//	yIndex = PixelCount/
+		//}
+		//yIndex = CR_ScreenSurface->w - i * CR_ScreenSurface->w;
+		//	//yIndex = (i - CR_ScreenSurface->w) / OffsetMod;
+		//	//xIndex = i - OffsetMod * yIndex;
+		//
+		//glm::vec3 RayDirection = ComputeIncRayDir(xIndex, yIndex);
+		//glm::vec3 HitColor = Raytrace(CR_MainCamera->Position, RayDirection, 0, 4);
+	//	PixelCollection[i] = SDL_MapRGB(_TargetSurface->format, 55, 55, 55);
+	//}
+	//if (_PixelIndex > CR_ScreenSurface->w) {
+	//	int OffsetMod = _TargetSurface->pitch * 0.25f;
+	//	yIndex = (_PixelIndex - CR_ScreenSurface->w) / OffsetMod;
+	//	xIndex = _PixelIndex - OffsetMod * yIndex;
+	//}
+	//else {
+	//	yIndex = 0;
+	//}
+	//glm::vec3 HitColor = Raytrace(CR_MainCamera->Position, ComputeIncRayDir(), 0, 4);
+	//Uint32 ColorBitValue = SDL_MapRGB(_TargetSurface->format, glm::clamp(HitColor.r * 255.0f, 0.0f, 255.0f), glm::clamp(HitColor.g * 255.0f, 0.0f, 255.0f), glm::clamp(HitColor.b * 255.0f, 0.0f, 255.0f));
+	//PixelAddress[_PixelIndex] = SDL_MapRGB(_TargetSurface->format, glm::clamp(HitColor.r * 255.0f, 0.0f, 255.0f), glm::clamp(HitColor.g * 255.0f, 0.0f, 255.0f), glm::clamp(HitColor.b * 255.0f, 0.0f, 255.0f));
+	//SDL_UpdateWindowSurface(CR_MainWindow);
+
+	//auto RenderEndTime = std::chrono::high_resolution_clock::now();
+	//std::chrono::duration<float> elapsed_seconds = RenderEndTime - RenderStartTime;
+	//std::cout << "Pixel: " << _PixelIndex  << " rendered in " << elapsed_seconds.count() << " seconds." << std::endl;
+}
+
+glm::vec3 Raytracer::ComputeIncRayDir(int _SurfaceX, int _SurfaceY)
+{
+	float PixelCameraSpaceZ = CR_MainCamera->Position.z - 1.0f;
+
+	float PixelNormalizedY = (_SurfaceY + 0.5f) * CR_ScreenSurfaceHeightDet;
+	float PixelRemappedY = 1.0f - 2.0f * PixelNormalizedY;
+
+	float PixelNormalizedX = (_SurfaceX + 0.5f) * CR_ScreenSurfaceWidthDet;
+	float PixelRemappedX = (2.0f * PixelNormalizedX - 1.0f) * CR_ScreenAspectRatio;
+
+	float PixelCameraX = PixelRemappedX * CR_FOV_Angle;
+	float PixelCameraY = PixelRemappedY * CR_FOV_Angle;
+
+	glm::vec3 PixelCameraSpacePos(PixelCameraX + CR_MainCamera->Position.x, PixelCameraY + CR_MainCamera->Position.y, PixelCameraSpaceZ);
+	glm::vec3 IncidentRayDir = glm::normalize(PixelCameraSpacePos - CR_MainCamera->Position);
+	return IncidentRayDir;
 }
 
 void Raytracer::Update()
@@ -362,6 +405,10 @@ void Raytracer::Update()
 		}
 		SDL_UpdateWindowSurface(CR_MainWindow);
 	}
+
+	if (CR_ScreenSurface == NULL) {
+		return;
+	}
 	Deactivate();
 }
 
@@ -425,10 +472,6 @@ void Raytracer::ToggleMeshRendering()
 
 void Raytracer::Deactivate()
 {
-	for (Light* L : CR_AreaLights) {
-		delete L;
-	}
-
 	for (Shape* S : CR_ActiveObjects) {
 		delete S;
 	}
@@ -438,6 +481,7 @@ void Raytracer::Deactivate()
 	CR_MainCamera = NULL;
 	delete CR_MainCamera;
 	SDL_FreeSurface(CR_ScreenSurface);
+	CR_ScreenSurface = NULL;
 	SDL_DestroyWindow(CR_MainWindow);
 
 	SDL_Quit();

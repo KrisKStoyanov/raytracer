@@ -34,7 +34,9 @@ public:
 	void ConfigEnv();
 	void ConfigScreen();
 	void Start();
-	bool RenderToSurface(SDL_Surface* _TargetSurface, int _SurfaceRectX, int _SurfaceRectY);
+	bool RenderToSurface(SDL_Surface* _TargetSurface);
+	void RenderToSurfaceAsync(SDL_Surface* _TargetSurface, uint32_t _PixelIndex, int _TargetIndex);
+	glm::vec3 ComputeIncRayDir(int _SurfaceX, int SurfaceY);
 	void Update();
 	void Deactivate();
 
@@ -45,7 +47,7 @@ public:
 	Light* CR_PointLight = NULL;
 	float CR_SoftShadowSamples = 64;
 	glm::vec3 CR_AreaLightSize;
-	std::vector<Light*> CR_AreaLights;
+	std::vector<glm::vec3> CR_AreaLights;
 
 	std::vector<Shape*> CR_ActiveObjects;
 

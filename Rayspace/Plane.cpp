@@ -37,6 +37,9 @@ bool Plane::CheckIntersection(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, Hit
 		_HitInfo.SpecularC = SpecularC;
 		_HitInfo.Shininess = Shininess;
 
+		_HitInfo.IncidentRayDir = _RayDirection;
+		_HitInfo.IncidentRayOrigin = _RayOrigin;
+
 		_HitInfo.Distance = DistToInt;
 		_HitInfo.IntPoint = IntPoint;
 		_HitInfo.Normal = Normal;
