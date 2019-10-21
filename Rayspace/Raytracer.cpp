@@ -181,7 +181,6 @@ void Raytracer::Start()
 				ThreadPool[i] = std::thread(&Raytracer::RenderToSurfaceAsync, this, BufferSurface, PixelsPerThread * i, PixelsPerThread);
 			}
 			for (int i = 0; i < CR_TotalThreadCount; i++) {
-				if(ThreadPool[i].joinable())
 				ThreadPool[i].join();
 			}
 
@@ -228,8 +227,7 @@ bool Raytracer::RenderToSurface(SDL_Surface* _TargetSurface)
 			unsigned int xIndex = i - yIndex * CR_ScreenSurface->w;
 			glm::vec3 RayDirection = ComputeIncRayDir(xIndex, yIndex);
 			glm::vec3 HitColor = Raytrace(CR_MainCamera->Position, RayDirection, 0, 4);
-			uint32_t* Pixels = (uint32_t*)_TargetSurface->pixels;
-			Pixels[i] = SDL_MapRGB(_TargetSurface->format, glm::clamp(HitColor.r * 255.0f, 0.0f, 255.0f), glm::clamp(HitColor.g * 255.0f, 0.0f, 255.0f), glm::clamp(HitColor.b * 255.0f, 0.0f, 255.0f));
+			PixelCollection[i] = SDL_MapRGB(_TargetSurface->format, glm::clamp(HitColor.r * 255.0f, 0.0f, 255.0f), glm::clamp(HitColor.g * 255.0f, 0.0f, 255.0f), glm::clamp(HitColor.b * 255.0f, 0.0f, 255.0f));
 		}
 		//int OffsetMod = _TargetSurface->pitch * 0.25f;
 		//int RowOffset;
@@ -243,8 +241,10 @@ bool Raytracer::RenderToSurface(SDL_Surface* _TargetSurface)
 		//	}
 		//}
 
-		SDL_BlitSurface(_TargetSurface, NULL, CR_ScreenSurface, NULL);
+		SDL_Surface* OptimizedSurface = SDL_ConvertSurface(_TargetSurface, CR_ScreenSurface->format, 0);
+		SDL_BlitSurface(OptimizedSurface, NULL, CR_ScreenSurface, NULL);
 		SDL_FreeSurface(_TargetSurface);
+		SDL_FreeSurface(OptimizedSurface);
 		SDL_UpdateWindowSurface(CR_MainWindow);
 
 		auto RenderEndTime = std::chrono::high_resolution_clock::now();
@@ -260,6 +260,10 @@ void Raytracer::RenderToSurfaceAsync(SDL_Surface* _TargetSurface, uint32_t _Pixe
 {
 	//auto RenderStartTime = std::chrono::high_resolution_clock::now();
 	_TargetIndex += _PixelIndex;
+
+	if (SDL_MUSTLOCK(_TargetSurface)) {
+		SDL_LockSurface(_TargetSurface);
+	}
 	for (_PixelIndex; _PixelIndex < _TargetIndex; ++_PixelIndex) {
 		int OffsetMod = _TargetSurface->pitch * 0.25f;
 		unsigned int yIndex = glm::floor(_PixelIndex / CR_ScreenSurface->w);
@@ -270,11 +274,14 @@ void Raytracer::RenderToSurfaceAsync(SDL_Surface* _TargetSurface, uint32_t _Pixe
 		Pixels[_PixelIndex] = SDL_MapRGB(_TargetSurface->format, glm::clamp(HitColor.r * 255.0f, 0.0f, 255.0f), glm::clamp(HitColor.g * 255.0f, 0.0f, 255.0f), glm::clamp(HitColor.b * 255.0f, 0.0f, 255.0f));
 	}
 
-	//SDL_Surface* OptimizedSurface = SDL_ConvertSurface(_TargetSurface, CR_ScreenSurface->format, 0);
-	//SDL_BlitSurface(OptimizedSurface, NULL, CR_ScreenSurface, NULL);
+	if (SDL_MUSTLOCK(_TargetSurface)) {
+		SDL_UnlockSurface(_TargetSurface);
+	}
+	SDL_Surface* OptimizedSurface = SDL_ConvertSurface(_TargetSurface, CR_ScreenSurface->format, 0);
+	SDL_BlitSurface(OptimizedSurface, NULL, CR_ScreenSurface, NULL);
 	//SDL_FreeSurface(_TargetSurface);
-	//SDL_FreeSurface(OptimizedSurface);
-	//SDL_UpdateWindowSurface(CR_MainWindow);
+	SDL_FreeSurface(OptimizedSurface);
+	SDL_UpdateWindowSurface(CR_MainWindow);
 	//for (int i = 0; i < PixelCount; ++i) {
 		//if (i > CR_ScreenSurface->w) {
 		//	yIndex = PixelCount/
