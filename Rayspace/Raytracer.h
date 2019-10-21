@@ -35,7 +35,7 @@ public:
 	void ConfigScreen();
 	void Start();
 	bool RenderToSurface(SDL_Surface* _TargetSurface);
-	void RenderToSurfaceAsync(SDL_Surface* _TargetSurface, uint32_t _PixelIndex, int _TargetIndex);
+	void RenderToSurfaceAsync(SDL_Surface* _TargetSurface, uint32_t _PixelIndex, unsigned int _TargetIndex);
 	glm::vec3 ComputeIncRayDir(int _SurfaceX, int SurfaceY);
 	void Update();
 	void Deactivate();
@@ -76,8 +76,6 @@ public:
 	SDL_Surface* CR_ScreenSurface = NULL;
 	bool CR_Multicore_Rendering = true;
 	unsigned int CR_TotalThreadCount;
-	unsigned int CR_ThreadedSurfaceWidth;
-	unsigned int CR_ThreadedSurfaceHeight;
 
 	float CR_ScreenAspectRatio;
 	float CR_FOV_Angle;
@@ -85,8 +83,7 @@ public:
 	float CR_ScreenSurfaceHeightDet;
 	float CR_ScreenSurfaceWidthDet;
 
-	unsigned int CR_ScreenWidthPadding;
-	unsigned int CR_ScreenHeigthPadding;
+	unsigned int CR_ScreenPixelCount;
 
 	bool LoadMesh(const char* _FilePath, glm::vec3 _AmbienctC, glm::vec3 _DiffuseC, glm::vec3 _SpecularC, float _Shininess);
 };
