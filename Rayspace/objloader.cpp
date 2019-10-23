@@ -8,23 +8,21 @@
 // Very, VERY simple OBJ loader based on http://www.opengl-tutorial.org/beginners-tutorials/tutorial-7-model-loading/.
 
 bool loadOBJ(
-	const char * path,
-	std::vector<glm::vec3> & out_vertices,
-	std::vector<glm::vec3> & out_normals
+	const char* path,
+	std::vector < glm::vec3 >& out_vertices,
+	std::vector < glm::vec3 >& out_normals
 ) {
 	printf("Loading OBJ file %s...\n", path);
 
-	std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
-	std::vector<glm::vec3> temp_vertices;
-	std::vector<glm::vec3> temp_normals;
+	std::vector< unsigned int > vertexIndices, normalIndices;
+	std::vector< glm::vec3 > temp_vertices;
+	std::vector< glm::vec3 > temp_normals;
 
-	FILE * file = fopen(path, "r");
+	FILE* file = fopen(path, "r");
 	if (file == NULL) {
-		printf("Impossible to open the file ! Are you in the right path ? See Tutorial 1 for details\n");
-		getchar();
+		printf("Impossible to open the file !\n");
 		return false;
 	}
-
 	while (1) {
 
 		char lineHeader[128];
@@ -33,12 +31,13 @@ bool loadOBJ(
 		if (res == EOF)
 			break; // EOF = End Of File. Quit the loop.
 
-				   // else : parse lineHeader
+		// else : parse lineHeader
 
 		if (strcmp(lineHeader, "v") == 0) {
 			glm::vec3 vertex;
 			fscanf(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z);
 			temp_vertices.push_back(vertex);
+
 		}
 		else if (strcmp(lineHeader, "vn") == 0) {
 			glm::vec3 normal;
@@ -48,41 +47,50 @@ bool loadOBJ(
 		else if (strcmp(lineHeader, "f") == 0) {
 			std::string vertex1, vertex2, vertex3;
 			unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
-			int matches = fscanf(file, "%d//%d %d//%d %d//%d\n", &vertexIndex[0], &normalIndex[0], &vertexIndex[1], &normalIndex[1], &vertexIndex[2],  &normalIndex[2]);
-			if (matches != 6) {
+			int firstTypeMatches = fscanf(file, "%d//%d %d//%d %d//%d\n", &vertexIndex[0], &normalIndex[0], &vertexIndex[1], &normalIndex[1], &vertexIndex[2], &normalIndex[2]);
+			int secondTypeMatches = fscanf(file, "%d//%d//%d %d//%d//%d %d//%d//%d\n", &vertexIndex[0], &uvIndex[0], &normalIndex[0], &vertexIndex[1], &uvIndex[1], &normalIndex[1], &vertexIndex[2], &uvIndex[2], &normalIndex[2]);
+			int thirdTypeMatches = fscanf(file, "%d %d %d\n", &test1, &test2, &test3);
+			if (firstTypeMatches == 6) {
+				vertexIndices.push_back(vertexIndex[0]);
+				vertexIndices.push_back(vertexIndex[1]);
+				vertexIndices.push_back(vertexIndex[2]);
+				normalIndices.push_back(normalIndex[0]);
+				normalIndices.push_back(normalIndex[1]);
+				normalIndices.push_back(normalIndex[2]);
+			}
+			else if (secondTypeMatches == 9)
+			{
+				vertexIndices.push_back(vertexIndex[0]);
+				vertexIndices.push_back(vertexIndex[1]);
+				vertexIndices.push_back(vertexIndex[2]);
+				normalIndices.push_back(normalIndex[0]);
+				normalIndices.push_back(normalIndex[1]);
+				normalIndices.push_back(normalIndex[2]);
+			}
+			else if (thirdTypeMatches == 3) {
+				vertexIndices.push_back(vertexIndex[0]);
+				vertexIndices.push_back(vertexIndex[1]);
+				vertexIndices.push_back(vertexIndex[2]);
+			}
+			else {
 				printf("File can't be read by our simple parser :-( Try exporting with other options\n");
 				return false;
 			}
-			vertexIndices.push_back(vertexIndex[0]);
-			vertexIndices.push_back(vertexIndex[1]);
-			vertexIndices.push_back(vertexIndex[2]);
-			normalIndices.push_back(normalIndex[0]);
-			normalIndices.push_back(normalIndex[1]);
-			normalIndices.push_back(normalIndex[2]);
 		}
 		else {
-			// Probably a comment, eat up the rest of the line
 			char stupidBuffer[1000];
 			fgets(stupidBuffer, 1000, file);
 		}
-
-	}
-
-	// For each vertex of each triangle
-	for (unsigned int i = 0; i<vertexIndices.size(); i++) {
-
-		// Get the indices of its attributes
-		unsigned int vertexIndex = vertexIndices[i];
-		unsigned int normalIndex = normalIndices[i];
-
-		// Get the attributes thanks to the index
-		glm::vec3 vertex = temp_vertices[vertexIndex - 1];
-		glm::vec3 normal = temp_normals[normalIndex - 1];
-
-		// Put the attributes in buffers
-		out_vertices.push_back(vertex);
-		out_normals.push_back(normal);
-
+		for (unsigned int i = 0; i < vertexIndices.size(); i++) {
+			unsigned int vertexIndex = vertexIndices[i];
+			glm::vec3 vertex = temp_vertices[vertexIndex - 1];
+			out_vertices.push_back(vertex);
+		}
+		for (unsigned int i = 0; i < normalIndices.size(); i++) {
+			unsigned int normalIndex = normalIndices[i];
+			glm::vec3 normal = temp_normals[normalIndex - 1];
+			out_normals.push_back(normal);
+		}
 	}
 
 	return true;

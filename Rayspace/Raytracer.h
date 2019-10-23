@@ -68,16 +68,17 @@ public:
 
 	bool CR_ES_CustomMeshes = false;
 	bool CR_VFX_Shadows = true;
-	bool CR_VFX_SoftShadows = true;
-	bool CR_VFX_JitteredSoftShadows = true;
-	bool CR_VFX_RecReflections = true;
-	bool CR_VFX_Supersampling = true;
+	bool CR_VFX_SoftShadows = false;
+	bool CR_VFX_JitteredSoftShadows = false;
+	bool CR_VFX_RecReflections = false;
+	bool CR_VFX_Supersampling = false;
 
 	void ToggleMeshRendering();
 	void ToggleShadowType();
 	void ToggleSoftShadowType();
 	void ToggleReflections();
 	void ToggleMulticoreRendering();
+	void ToggleSupersampling();
 
 	void ToggleSoftShadowSamples();
 	void RandomizeObjectPositions();

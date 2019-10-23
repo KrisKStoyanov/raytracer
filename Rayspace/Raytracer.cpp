@@ -106,8 +106,9 @@ void Raytracer::ConfigEnv()
 	CR_ActiveObjects.push_back(TempGreenSphere);
 	CR_ActiveObjects.push_back(TempPlane);
 		
-	if (CR_ES_CustomMeshes) {
-		LoadMesh("../teapot_simple_smooth.obj", glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.1f, 0.1f, 0.1f), 128.0f);
+	if (!CR_ES_CustomMeshes) {
+		//LoadMesh("../teapot_simple_smooth.obj", glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.1f, 0.1f, 0.1f), 128.0f);
+		LoadMesh("../cube_simple.obj", glm::vec3(0.0f, 1.0f, 0.5f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.1f, 0.1f, 0.1f), 128.0f);
 	}
 }
 
@@ -157,9 +158,7 @@ glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, con
 					HitColor = AmbientColor;
 				}
 			}	
-		}
-
-		
+		}	
 
 		if (CR_VFX_RecReflections && _CurrentDepth < _MaxDepth) {
 			return HitColor + Hit.SpecularC * Raytrace(Hit.ReflRayOrigin, Hit.ReflRayDir, _CurrentDepth + 1, _MaxDepth);
@@ -307,7 +306,7 @@ void Raytracer::RenderSurfaceAsync(SDL_Surface* _TargetSurface, uint32_t _PixelI
 			SDL_UnlockSurface(_TargetSurface);
 		}
 		SDL_BlitSurface(_TargetSurface, NULL, CR_ScreenSurface, NULL);
-		if (CR_MainWindow != NULL) {
+		if (this->CR_MainWindow != nullptr) {
 			SDL_UpdateWindowSurface(CR_MainWindow);
 		}
 	}
@@ -391,7 +390,7 @@ void Raytracer::Update()
 					break;
 				case SDLK_4:
 					printf("Hotkey Pressed: [4]\n");
-					//ToggleFXAA();
+					ToggleSupersampling();
 					break;
 				case SDLK_t:
 					printf("Hotkey Pressed: [T]\n");
@@ -460,6 +459,13 @@ void Raytracer::ToggleMulticoreRendering()
 	CR_Multicore_Rendering = !CR_Multicore_Rendering;
 	ConfigScreen();
 	printf("Multicore rendering toggled\n");
+	Start();
+}
+
+void Raytracer::ToggleSupersampling()
+{
+	CR_VFX_Supersampling = !CR_VFX_Supersampling;
+	printf("Supersampling toggled\n");
 	Start();
 }
 
