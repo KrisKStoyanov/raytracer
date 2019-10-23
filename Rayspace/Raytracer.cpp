@@ -61,7 +61,7 @@ void Raytracer::ConfigScreen()
 
 void Raytracer::ConfigLighting()
 {
-	CR_MainCamera = new Camera(glm::vec3(0.0f, 0.0f, 5.0f));
+	CR_MainCamera = new Camera(glm::vec3(0.0f, 0.0f, 15.0f));
 	CR_PointLight = new Light(glm::vec3(0.0f, 20.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 	CR_AmbientColor = glm::vec3(0.1f, 0.1f, 0.1f);
 	CR_AreaLightSize = glm::vec3(9.0f, 0.1f, 9.0f);
@@ -107,7 +107,7 @@ void Raytracer::ConfigEnv()
 	CR_ActiveObjects.push_back(TempPlane);
 		
 	if (!CR_ES_CustomMeshes) {
-		//LoadMesh("../teapot_simple_smooth.obj", glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.1f, 0.1f, 0.1f), 128.0f);
+		LoadMesh("../teapot_simple_smooth.obj", glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.1f, 0.1f, 0.1f), 128.0f);
 		LoadMesh("../cube_simple.obj", glm::vec3(0.0f, 1.0f, 0.5f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.1f, 0.1f, 0.1f), 128.0f);
 	}
 }
