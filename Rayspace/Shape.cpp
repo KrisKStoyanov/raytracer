@@ -14,3 +14,12 @@ bool Shape::CheckIntersection(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, Hit
 	return false;
 }
 
+glm::vec3 Shape::GetPosition()
+{
+	return glm::vec3();
+}
+
+void Shape::SetPosition(glm::vec3 _UpdatedPos)
+{
+}
+

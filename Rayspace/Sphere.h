@@ -15,6 +15,9 @@ public:
 	float Shininess;
 	Box* BoundingBox = NULL;
 
+	glm::vec3 GetPosition();
+	void SetPosition(glm::vec3 _UpdatedPosition);
+
 	Sphere(glm::vec3 _pos, float _radius, glm::vec3 _ambientC, glm::vec3 _diffuseC, glm::vec3 _specularC, float _shininess);
 	~Sphere();
 	bool CheckIntersection(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, HitInfo& _hitInfo);

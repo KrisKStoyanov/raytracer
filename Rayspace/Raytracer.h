@@ -30,17 +30,22 @@ public:
 
 	bool Init(const char* _WindowName, int _WindowWidth, int _WindowHeight);
 	void Setup();
-	void CheckSDLError(int line);
+	void CheckSDLError(int _Line);
 	void ConfigEnv();
+	void ConfigLighting();
 	void ConfigScreen();
 	void Start();
-	bool RenderToSurface(SDL_Surface* _TargetSurface);
-	void RenderToSurfaceAsync(SDL_Surface* _TargetSurface, uint32_t _PixelIndex, unsigned int _TargetIndex);
-	glm::vec3 ComputeIncRayDir(int _SurfaceX, int SurfaceY);
+	bool RenderSurface(SDL_Surface* _TargetSurface);
+	void RenderSurfaceAsync(SDL_Surface* _TargetSurface, uint32_t _PixelIndex, uint32_t _TargetIndex);
+	glm::vec3 ComputeIncRayDir(int _SurfaceX, int _SurfaceY, float _OffsetX = .5f, float _OffsetY = .5f);
 	void Update();
 	void Deactivate();
 
-	uint32_t RMask, GMask, BMask, AMask;
+	uint32_t 
+		RMask = 0x000000ff,
+		GMask = 0x0000ff00,
+		BMask = 0x00ff0000,
+		AMask = 0xff000000;
 
 	glm::vec3 CR_AmbientColor;
 	
@@ -48,6 +53,7 @@ public:
 	float CR_SoftShadowSamples = 64;
 	glm::vec3 CR_AreaLightSize;
 	std::vector<glm::vec3> CR_AreaLights;
+	float CR_AreaLightCellSizeX, CR_AreaLightCellSizeZ;
 
 	std::vector<Shape*> CR_ActiveObjects;
 
@@ -58,20 +64,23 @@ public:
 
 	HitInfo Raycast(glm::vec3 _RayOrigin, glm::vec3 _RayDirection);
 
-	bool CR_Mesh_Rendering = false;
-	bool CR_Effects_Hard_Shadows = true;
-	bool CR_Effects_Soft_Shadows = true;
-	bool CR_Effects_Reflections = true;
+	int CR_SSAA_Samples = 4;
 
-	bool CR_Rendered_Hard_Shadows = false;
-	bool CR_Rendered_Soft_Shadows = false;	
-	bool CR_Rendered_Reflections = false;
+	bool CR_ES_CustomMeshes = false;
+	bool CR_VFX_Shadows = true;
+	bool CR_VFX_SoftShadows = true;
+	bool CR_VFX_JitteredSoftShadows = true;
+	bool CR_VFX_RecReflections = true;
+	bool CR_VFX_Supersampling = true;
 
 	void ToggleMeshRendering();
-	void ToggleHardShadows();
-	void ToggleSoftShadows();
+	void ToggleShadowType();
+	void ToggleSoftShadowType();
 	void ToggleReflections();
 	void ToggleMulticoreRendering();
+
+	void ToggleSoftShadowSamples();
+	void RandomizeObjectPositions();
 
 	SDL_Surface* CR_ScreenSurface = NULL;
 	bool CR_Multicore_Rendering = true;
