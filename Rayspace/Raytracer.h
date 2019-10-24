@@ -37,7 +37,7 @@ public:
 	void Start();
 	bool RenderSurface(SDL_Surface* _TargetSurface);
 	void RenderSurfaceAsync(SDL_Surface* _TargetSurface, uint32_t _PixelIndex, uint32_t _TargetIndex);
-	glm::vec3 ComputeIncRayDir(int _SurfaceX, int _SurfaceY, float _OffsetX = .5f, float _OffsetY = .5f);
+	glm::vec3 ComputeIncRayDir(int _SurfaceX, int _SurfaceY, float _OffsetX = 0.f, float _OffsetY = 0.f);
 	void Update();
 	void Deactivate();
 
@@ -58,33 +58,37 @@ public:
 	std::vector<Shape*> CR_ActiveObjects;
 
 	SDL_Window* CR_MainWindow = NULL;
+	SDL_Surface* CR_ScreenSurface = NULL;
 	Camera* CR_MainCamera = NULL;
 
+	HitInfo Raycast(glm::vec3 _RayOrigin, glm::vec3 _RayDirection);
 	glm::vec3 Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, int _CurrentDepth = 0, int _MaxDepth = 2);
 
-	HitInfo Raycast(glm::vec3 _RayOrigin, glm::vec3 _RayDirection);
-
-	int CR_SSAA_Samples = 4;
-
-	bool CR_ES_CustomMeshes = false;
+	//VFX
 	bool CR_VFX_Shadows = true;
-	bool CR_VFX_SoftShadows = false;
-	bool CR_VFX_JitteredSoftShadows = false;
-	bool CR_VFX_RecReflections = false;
-	bool CR_VFX_Supersampling = false;
+	bool CR_VFX_SoftShadows = true;
+	bool CR_VFX_JitteredSoftShadows = true;
+	bool CR_VFX_RecReflections = true;
+	bool CR_VFX_Supersampling = true;
 
-	void ToggleMeshRendering();
+	void ToggleShadows();
 	void ToggleShadowType();
 	void ToggleSoftShadowType();
 	void ToggleReflections();
-	void ToggleMulticoreRendering();
 	void ToggleSupersampling();
 
 	void ToggleSoftShadowSamples();
-	void RandomizeObjectPositions();
 
-	SDL_Surface* CR_ScreenSurface = NULL;
+	//Meshes
+	bool CR_Cube_Mesh = true;
+	bool CR_Teapot_Mesh = false;
+
+	void ToggleCubeMesh();
+	void ToggleTeapotMesh();
+
 	bool CR_Multicore_Rendering = true;
+	void ToggleMulticoreRendering();
+	
 	unsigned int CR_TotalThreadCount;
 
 	float CR_ScreenAspectRatio;
@@ -94,8 +98,10 @@ public:
 	float CR_ScreenSurfaceWidthDet;
 
 	unsigned int CR_ScreenPixelCount;
+	int CR_SSAA_Samples = 4;
 
 	bool LoadMesh(const char* _FilePath, glm::vec3 _AmbienctC, glm::vec3 _DiffuseC, glm::vec3 _SpecularC, float _Shininess);
+	void RandomizeObjectPositions();
 };
 
 

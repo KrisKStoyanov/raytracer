@@ -41,6 +41,33 @@ bool Raytracer::Init(const char* _WindowName, int _WindowWidth, int _WindowHeigh
 
 void Raytracer::Setup()
 {
+	printf("Controls:\n"
+		"[W] - Move Forward\n"
+		"[S] - Move Backward\n"
+		"[A] - Move Left\n"
+		"[D] - Move Right\n"
+		"-------------------\n"
+		"[LEFT] - Move Light Position Left\n"
+		"[RIGHT] - Move Light Position Right\n"
+		"[UP] - Move Light Position Forward\n"
+		"[DOWN] - Move Light Position Backward\n"
+		"-------------------\n"
+		"[1] - Toggle Shadows: ON/OFF\n"
+		"[2] - Toggle Shadow Type: SOFT/HARD\n"
+		"[3] - Toggle Soft Shadow Sampling: UNIFORM/JITTERED\n"
+		"[4] - Toggle Recursive Reflections: ON/OFF\n"
+		"[5] - Toggle Supersampling: ON/OFF\n"
+		"-------------------\n"
+		"[M] - Toggle Multi-core Rendering: ON/OFF\n"
+		"[C] - Toggle Cube Mesh: ON/OFF\n"
+		"[T] - Toggle Teapot Mesh: ON/OFF\n"
+		"[I] - Toggle Soft Shadow Samples: 16/36/64\n"
+		"-------------------\n"
+		"[G] - Randomize Sphere Positions\n"
+		"[R] - Restart Scene\n"
+		"[ESC] - Exit \n"
+		"-------------------\n");
+
 	CR_Active = true;
 	ConfigScreen();
 	ConfigEnv();
@@ -61,8 +88,6 @@ void Raytracer::ConfigScreen()
 
 void Raytracer::ConfigLighting()
 {
-	CR_MainCamera = new Camera(glm::vec3(0.0f, 0.0f, 15.0f));
-	CR_PointLight = new Light(glm::vec3(0.0f, 20.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 	CR_AmbientColor = glm::vec3(0.1f, 0.1f, 0.1f);
 	CR_AreaLightSize = glm::vec3(9.0f, 0.1f, 9.0f);
 
@@ -85,6 +110,9 @@ void Raytracer::ConfigLighting()
 
 void Raytracer::ConfigEnv()
 {
+	CR_MainCamera = new Camera(glm::vec3(1.0f, 0.0f, 5.0f));
+	CR_PointLight = new Light(glm::vec3(0.0f, 20.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+
 	Sphere* TempRedSphere = new Sphere(glm::vec3(0.0f, 0.0f, -20.0f), 4.0f, glm::vec3(1.0f, 0.32f, 0.36f), glm::vec3(1.0f, 0.32f, 0.36f), glm::vec3(0.8f, 0.8f, 0.8f), 128.0f);
 	Sphere* TempYellowSphere = new Sphere(glm::vec3(5.0f, -1.0f, -15.0f), 2.0f, glm::vec3(0.9f, 0.76f, 0.46f), glm::vec3(0.9f, 0.76f, 0.46f), glm::vec3(0.8f, 0.8f, 0.8f), 128.0f);
 	Sphere* TempLightBlueSphere = new Sphere(glm::vec3(5.0f, 0.0f, -25.0f), 3.0f, glm::vec3(0.65f, 0.77f, 0.97f), glm::vec3(0.65f, 0.77f, 0.97f), glm::vec3(0.5f, 0.5f, 0.5f), 128.0f);
@@ -106,9 +134,12 @@ void Raytracer::ConfigEnv()
 	CR_ActiveObjects.push_back(TempGreenSphere);
 	CR_ActiveObjects.push_back(TempPlane);
 		
-	if (!CR_ES_CustomMeshes) {
-		LoadMesh("../teapot_simple_smooth.obj", glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.1f, 0.1f, 0.1f), 128.0f);
-		LoadMesh("../cube_simple.obj", glm::vec3(0.0f, 1.0f, 0.5f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.1f, 0.1f, 0.1f), 128.0f);
+	if (CR_Cube_Mesh) {
+		LoadMesh("../cube_simple.obj", glm::vec3(0.0f, 1.0f, 0.5f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.25f, 0.25f, 0.25f), 128.0f);
+	}
+
+	if (CR_Teapot_Mesh) {
+		LoadMesh("../teapot_simple_smooth.obj", glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.25f, 0.25f, 0.25f), 128.0f);
 	}
 }
 
@@ -154,7 +185,7 @@ glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, con
 				HitInfo LightRayHit = Raycast(LightRayOrigin, LightDir);
 				float LightHitDistSqrd = LightRayHit.Distance * LightRayHit.Distance;
 				float LightDirFullDistSqrd = glm::dot(LightDirFull, LightDirFull);
-				if (LightRayHit.Intersected && LightRayHit.Distance > 0.0f && LightRayHit.Distance != Hit.Distance && LightHitDistSqrd < LightDirFullDistSqrd) {
+				if (LightRayHit.Intersected && LightRayHit.Distance > 0.0f && LightHitDistSqrd < LightDirFullDistSqrd) {
 					HitColor = AmbientColor;
 				}
 			}	
@@ -202,8 +233,21 @@ void Raytracer::Start()
 
 		auto EndTime = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<float> elapsed_seconds = EndTime - StartTime;
-		std::cout << "Elapsed rendering time: " << elapsed_seconds.count() << " seconds." << std::endl;
-
+		printf("\nElapsed rendering time: %f seconds.\n"
+			"Hard Shadows: %s\n"
+			"Soft Shadows: %s\n"
+			"Soft Shadows (Jittered): %s\n"
+			"Recursive Reflections: %s\n"
+			"Supersampling: %s\n"
+			"Multi-core Rendering: %s\n"
+			"-------------------\n",
+			elapsed_seconds.count(),
+			CR_VFX_Shadows ? "ON" : "OFF",
+			CR_VFX_SoftShadows ? "ON" : "OFF",
+			CR_VFX_JitteredSoftShadows ? "ON" : "OFF",
+			CR_VFX_RecReflections ? "ON" : "OFF",
+			CR_VFX_Supersampling ? "ON" : "OFF",
+			CR_Multicore_Rendering ? "ON" : "OFF");
 		Update();
 	}
 }
@@ -316,10 +360,10 @@ glm::vec3 Raytracer::ComputeIncRayDir(int _SurfaceX, int _SurfaceY, float _Offse
 {
 	float PixelCameraSpaceZ = CR_MainCamera->Position.z - 1.0f;
 
-	float PixelNormalizedY = (_SurfaceY + _OffsetY) * CR_ScreenSurfaceHeightDet;
+	float PixelNormalizedY = (_SurfaceY + 0.5f + _OffsetY) * CR_ScreenSurfaceHeightDet;
 	float PixelRemappedY = 1.0f - 2.0f * PixelNormalizedY;
 
-	float PixelNormalizedX = (_SurfaceX + _OffsetX) * CR_ScreenSurfaceWidthDet;
+	float PixelNormalizedX = (_SurfaceX + 0.5f + _OffsetY) * CR_ScreenSurfaceWidthDet;
 	float PixelRemappedX = (2.0f * PixelNormalizedX - 1.0f) * CR_ScreenAspectRatio;
 
 	float PixelCameraX = PixelRemappedX * CR_FOV_Angle;
@@ -377,24 +421,31 @@ void Raytracer::Update()
 					break;
 				case SDLK_1:
 					printf("Hotkey Pressed: [1]\n");
-					ToggleShadowType();
+					ToggleShadows();
 					break;
 				case SDLK_2:
 					printf("Hotkey Pressed: [2]\n");
-					ToggleSoftShadowType();
+					ToggleShadowType();
 					break;
 				case SDLK_3:
 					printf("Hotkey Pressed: [3]\n");
-					ToggleReflections();
-
+					ToggleSoftShadowType();
 					break;
 				case SDLK_4:
 					printf("Hotkey Pressed: [4]\n");
+					ToggleReflections();
+					break;
+				case SDLK_5:
+					printf("Hotkey Pressed: [5]\n");
 					ToggleSupersampling();
+					break;
+				case SDLK_c:
+					printf("Hotkey Pressed: [C]\n");
+					ToggleCubeMesh();
 					break;
 				case SDLK_t:
 					printf("Hotkey Pressed: [T]\n");
-					ToggleMeshRendering();
+					ToggleTeapotMesh();
 					break;
 				case SDLK_m:
 					printf("Hotkey Pressed: [M]\n");
@@ -458,14 +509,12 @@ void Raytracer::ToggleMulticoreRendering()
 {
 	CR_Multicore_Rendering = !CR_Multicore_Rendering;
 	ConfigScreen();
-	printf("Multicore rendering toggled\n");
 	Start();
 }
 
 void Raytracer::ToggleSupersampling()
 {
 	CR_VFX_Supersampling = !CR_VFX_Supersampling;
-	printf("Supersampling toggled\n");
 	Start();
 }
 
@@ -473,30 +522,38 @@ void Raytracer::ToggleShadowType()
 {
 	CR_VFX_SoftShadows = !CR_VFX_SoftShadows;
 	ConfigLighting();
-	printf("Shadows type toggled\n");
 	Start();
 }
 
 void Raytracer::ToggleSoftShadowType()
 {
 	CR_VFX_JitteredSoftShadows = !CR_VFX_JitteredSoftShadows;
-
-	printf("Soft Shadow type toggled\n");
 	Start();
 }
 
 void Raytracer::ToggleReflections()
 {
 	CR_VFX_RecReflections = !CR_VFX_RecReflections;
-	printf("Reflections toggled\n");
 	Start();
 }
 
-void Raytracer::ToggleMeshRendering()
+void Raytracer::ToggleCubeMesh()
 {
-	CR_ES_CustomMeshes = !CR_ES_CustomMeshes;
+	CR_Cube_Mesh = !CR_Cube_Mesh;
 	ConfigEnv();
-	printf("Mesh rendering toggled\n");
+	Start();
+}
+
+void Raytracer::ToggleTeapotMesh()
+{
+	CR_Teapot_Mesh = !CR_Teapot_Mesh;
+	ConfigEnv();
+	Start();
+}
+
+void Raytracer::ToggleShadows()
+{
+	CR_VFX_Shadows = !CR_VFX_Shadows;
 	Start();
 }
 
@@ -511,7 +568,7 @@ void Raytracer::ToggleSoftShadowSamples()
 	else if (CR_SoftShadowSamples == 64) {
 		CR_SoftShadowSamples = 16;
 	}
-	printf("Soft shadow samples %f\n", CR_SoftShadowSamples);
+	printf("Soft Shadow Samples %f\n", CR_SoftShadowSamples);
 }
 
 void Raytracer::RandomizeObjectPositions()
