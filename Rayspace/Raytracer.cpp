@@ -84,12 +84,14 @@ void Raytracer::ConfigScreen()
 	CR_FOV_Angle = glm::tan(glm::radians(60.0f) * 0.5f);
 	CR_TotalThreadCount = std::thread::hardware_concurrency();
 	CR_ScreenPixelCount = CR_ScreenSurface->w * CR_ScreenSurface->h;
+	CR_MainCamera = new Camera(glm::vec3(1.0f, 0.0f, 5.0f));
 }
 
 void Raytracer::ConfigLighting()
 {
 	CR_AmbientColor = glm::vec3(0.1f, 0.1f, 0.1f);
 	CR_AreaLightSize = glm::vec3(9.0f, 0.1f, 9.0f);
+	CR_PointLight = new Light(glm::vec3(0.0f, 20.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 
 	if (!CR_AreaLights.empty()) {
 		CR_AreaLights.clear();
@@ -110,9 +112,6 @@ void Raytracer::ConfigLighting()
 
 void Raytracer::ConfigEnv()
 {
-	CR_MainCamera = new Camera(glm::vec3(1.0f, 0.0f, 5.0f));
-	CR_PointLight = new Light(glm::vec3(0.0f, 20.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-
 	Sphere* TempRedSphere = new Sphere(glm::vec3(0.0f, 0.0f, -20.0f), 4.0f, glm::vec3(1.0f, 0.32f, 0.36f), glm::vec3(1.0f, 0.32f, 0.36f), glm::vec3(0.8f, 0.8f, 0.8f), 128.0f);
 	Sphere* TempYellowSphere = new Sphere(glm::vec3(5.0f, -1.0f, -15.0f), 2.0f, glm::vec3(0.9f, 0.76f, 0.46f), glm::vec3(0.9f, 0.76f, 0.46f), glm::vec3(0.8f, 0.8f, 0.8f), 128.0f);
 	Sphere* TempLightBlueSphere = new Sphere(glm::vec3(5.0f, 0.0f, -25.0f), 3.0f, glm::vec3(0.65f, 0.77f, 0.97f), glm::vec3(0.65f, 0.77f, 0.97f), glm::vec3(0.5f, 0.5f, 0.5f), 128.0f);
