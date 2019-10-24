@@ -135,11 +135,11 @@ void Raytracer::ConfigEnv()
 	CR_ActiveObjects.push_back(TempPlane);
 		
 	if (CR_Cube_Mesh) {
-		LoadMesh("../cube_simple.obj", glm::vec3(0.0f, 1.0f, 0.5f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.25f, 0.25f, 0.25f), 128.0f);
+		LoadMesh("../External Resources/cube_simple.obj", glm::vec3(0.0f, 1.0f, 0.5f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.25f, 0.25f, 0.25f), 128.0f);
 	}
 
 	if (CR_Teapot_Mesh) {
-		LoadMesh("../teapot_simple_smooth.obj", glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.25f, 0.25f, 0.25f), 128.0f);
+		LoadMesh("../External Resources/teapot_simple_smooth.obj", glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.25f, 0.25f, 0.25f), 128.0f);
 	}
 }
 
