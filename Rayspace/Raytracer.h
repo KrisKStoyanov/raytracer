@@ -41,14 +41,14 @@ public:
 	void Update();
 	void Deactivate();
 
-	uint32_t 
+	uint32_t
 		RMask = 0x000000ff,
 		GMask = 0x0000ff00,
 		BMask = 0x00ff0000,
 		AMask = 0xff000000;
 
 	glm::vec3 CR_AmbientColor;
-	
+
 	Light* CR_PointLight = NULL;
 	float CR_SoftShadowSamples = 64;
 	glm::vec3 CR_AreaLightSize;
@@ -69,26 +69,32 @@ public:
 	bool CR_VFX_SoftShadows = true;
 	bool CR_VFX_JitteredSoftShadows = true;
 	bool CR_VFX_RecReflections = true;
-	bool CR_VFX_Supersampling = true;
+	bool CR_VFX_Supersampling = false;
 
 	void ToggleShadows();
 	void ToggleShadowType();
 	void ToggleSoftShadowType();
 	void ToggleReflections();
 	void ToggleSupersampling();
-
 	void ToggleSoftShadowSamples();
+
+	//Primitives
+	void TogglePrimitives();
+	bool CR_Primitives = true;
 
 	//Meshes
 	bool CR_Cube_Mesh = true;
 	bool CR_Teapot_Mesh = false;
+
+	bool CR_BoundingBoxes = true;
+	void ToggleBoundingBoxes();
 
 	void ToggleCubeMesh();
 	void ToggleTeapotMesh();
 
 	bool CR_Multicore_Rendering = true;
 	void ToggleMulticoreRendering();
-	
+
 	unsigned int CR_TotalThreadCount;
 
 	float CR_ScreenAspectRatio;
@@ -100,7 +106,7 @@ public:
 	unsigned int CR_ScreenPixelCount;
 	int CR_SSAA_Samples = 4;
 
-	bool LoadMesh(const char* _FilePath, glm::vec3 _AmbienctC, glm::vec3 _DiffuseC, glm::vec3 _SpecularC, float _Shininess);
+	bool LoadMesh(const char* _FilePath, glm::vec3 _AmbienctC, glm::vec3 _DiffuseC, glm::vec3 _SpecularC, float _Shininess, bool _ApplyBoundingBox);
 	void RandomizeObjectPositions();
 };
 

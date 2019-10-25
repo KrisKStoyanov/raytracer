@@ -62,6 +62,8 @@ void Raytracer::Setup()
 		"[C] - Toggle Cube Mesh: ON/OFF\n"
 		"[T] - Toggle Teapot Mesh: ON/OFF\n"
 		"[I] - Toggle Soft Shadow Samples: 16/36/64\n"
+		"[B] - Toggle Bounding Boxes for Custom Meshes: ON/OFF\n"
+		"[P] - Toggle Primitive Object Rendering: ON/OFF\n"
 		"-------------------\n"
 		"[G] - Randomize Sphere Positions\n"
 		"[R] - Restart Scene\n"
@@ -81,7 +83,7 @@ void Raytracer::ConfigScreen()
 	CR_ScreenSurfaceHeightDet = 1.f / CR_ScreenSurface->h;
 	CR_ScreenSurfaceWidthDet = 1.f / CR_ScreenSurface->w;
 	CR_ScreenAspectRatio = CR_ScreenSurface->w * CR_ScreenSurfaceHeightDet;
-	CR_FOV_Angle = glm::tan(glm::radians(60.0f) * 0.5f);
+	CR_FOV_Angle = glm::tan(glm::radians(90.0f) * 0.5f);
 	CR_TotalThreadCount = std::thread::hardware_concurrency();
 	CR_ScreenPixelCount = CR_ScreenSurface->w * CR_ScreenSurface->h;
 	CR_MainCamera = new Camera(glm::vec3(1.0f, 0.0f, 5.0f));
@@ -112,33 +114,34 @@ void Raytracer::ConfigLighting()
 
 void Raytracer::ConfigEnv()
 {
-	Sphere* TempRedSphere = new Sphere(glm::vec3(0.0f, 0.0f, -20.0f), 4.0f, glm::vec3(1.0f, 0.32f, 0.36f), glm::vec3(1.0f, 0.32f, 0.36f), glm::vec3(0.8f, 0.8f, 0.8f), 128.0f);
-	Sphere* TempYellowSphere = new Sphere(glm::vec3(5.0f, -1.0f, -15.0f), 2.0f, glm::vec3(0.9f, 0.76f, 0.46f), glm::vec3(0.9f, 0.76f, 0.46f), glm::vec3(0.8f, 0.8f, 0.8f), 128.0f);
-	Sphere* TempLightBlueSphere = new Sphere(glm::vec3(5.0f, 0.0f, -25.0f), 3.0f, glm::vec3(0.65f, 0.77f, 0.97f), glm::vec3(0.65f, 0.77f, 0.97f), glm::vec3(0.5f, 0.5f, 0.5f), 128.0f);
-	Sphere* TempLightGreySphere = new Sphere(glm::vec3(-5.5f, 0.0f, -15.0f), 3.0f, glm::vec3(0.9f, 0.9f, 0.9f), glm::vec3(0.9f, 0.9f, 0.9f), glm::vec3(0.5f, 0.5f, 0.5f), 128.0f);
-	Sphere* TempGreenSphere = new Sphere(glm::vec3(-4.0f, 4.5f, -20.0f), 2.0f, glm::vec3(0.52f, 0.94f, 0.81f), glm::vec3(0.52f, 0.94f, 0.81f), glm::vec3(0.25f, 0.25f, 0.25f), 128.0f);
-
-	Plane* TempPlane = new Plane(glm::vec3(0.0f, -4.0f, -20.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(0.0f, 0.0f, 0.0f), 128.0f);
-	
 	if (!CR_ActiveObjects.empty()) {
 		for (Shape* S : CR_ActiveObjects) {
 			delete S;
 		}
 		CR_ActiveObjects.clear();
 	}
-	CR_ActiveObjects.push_back(TempRedSphere);
-	CR_ActiveObjects.push_back(TempYellowSphere);
-	CR_ActiveObjects.push_back(TempLightBlueSphere);
-	CR_ActiveObjects.push_back(TempLightGreySphere);
-	CR_ActiveObjects.push_back(TempGreenSphere);
+
+	if (CR_Primitives) {
+		Sphere* TempRedSphere = new Sphere(glm::vec3(0.0f, 0.0f, -20.0f), 4.0f, glm::vec3(1.0f, 0.32f, 0.36f), glm::vec3(1.0f, 0.32f, 0.36f), glm::vec3(0.8f, 0.8f, 0.8f), 128.0f);
+		Sphere* TempYellowSphere = new Sphere(glm::vec3(5.0f, -1.0f, -15.0f), 2.0f, glm::vec3(0.9f, 0.76f, 0.46f), glm::vec3(0.9f, 0.76f, 0.46f), glm::vec3(0.8f, 0.8f, 0.8f), 128.0f);
+		Sphere* TempLightBlueSphere = new Sphere(glm::vec3(5.0f, 0.0f, -25.0f), 3.0f, glm::vec3(0.65f, 0.77f, 0.97f), glm::vec3(0.65f, 0.77f, 0.97f), glm::vec3(0.5f, 0.5f, 0.5f), 128.0f);
+		Sphere* TempLightGreySphere = new Sphere(glm::vec3(-5.5f, 0.0f, -15.0f), 3.0f, glm::vec3(0.9f, 0.9f, 0.9f), glm::vec3(0.9f, 0.9f, 0.9f), glm::vec3(0.5f, 0.5f, 0.5f), 128.0f);
+		Sphere* TempGreenSphere = new Sphere(glm::vec3(-4.0f, 4.5f, -20.0f), 2.0f, glm::vec3(0.52f, 0.94f, 0.81f), glm::vec3(0.52f, 0.94f, 0.81f), glm::vec3(0.25f, 0.25f, 0.25f), 128.0f);
+		CR_ActiveObjects.push_back(TempRedSphere);
+		CR_ActiveObjects.push_back(TempYellowSphere);
+		CR_ActiveObjects.push_back(TempLightBlueSphere);
+		CR_ActiveObjects.push_back(TempLightGreySphere);
+		CR_ActiveObjects.push_back(TempGreenSphere);
+	}
+	Plane* TempPlane = new Plane(glm::vec3(0.0f, -4.0f, -20.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(0.8f, 0.8f, 0.8f), glm::vec3(0.0f, 0.0f, 0.0f), 128.0f);
 	CR_ActiveObjects.push_back(TempPlane);
-		
+
 	if (CR_Cube_Mesh) {
-		LoadMesh("../External Resources/cube_simple.obj", glm::vec3(0.0f, 1.0f, 0.5f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.25f, 0.25f, 0.25f), 128.0f);
+		LoadMesh("../External Resources/cube_simple.obj", glm::vec3(0.0f, 1.0f, 0.5f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.25f, 0.25f, 0.25f), 128.0f, false);
 	}
 
 	if (CR_Teapot_Mesh) {
-		LoadMesh("../External Resources/teapot_simple_smooth.obj", glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.25f, 0.25f, 0.25f), 128.0f);
+		LoadMesh("../External Resources/teapot_simple_smooth.obj", glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 0.0f), glm::vec3(0.25f, 0.25f, 0.25f), 128.0f, CR_BoundingBoxes);
 	}
 }
 
@@ -187,8 +190,8 @@ glm::vec3 Raytracer::Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, con
 				if (LightRayHit.Intersected && LightRayHit.Distance > 0.0f && LightHitDistSqrd < LightDirFullDistSqrd) {
 					HitColor = AmbientColor;
 				}
-			}	
-		}	
+			}
+		}
 
 		if (CR_VFX_RecReflections && _CurrentDepth < _MaxDepth) {
 			return HitColor + Hit.SpecularC * Raytrace(Hit.ReflRayOrigin, Hit.ReflRayDir, _CurrentDepth + 1, _MaxDepth);
@@ -233,12 +236,20 @@ void Raytracer::Start()
 		auto EndTime = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<float> elapsed_seconds = EndTime - StartTime;
 		printf("\nElapsed rendering time: %f seconds.\n"
+			"-------------------\n"
+			"VIDEO SETTINGS:\n"
 			"Hard Shadows: %s\n"
 			"Soft Shadows: %s\n"
 			"Soft Shadows (Jittered): %s\n"
 			"Recursive Reflections: %s\n"
 			"Supersampling: %s\n"
 			"Multi-core Rendering: %s\n"
+			"-------------------\n"
+			"SCENE SETTINGS:\n"
+			"Primitives: %s\n"
+			"Cube Mesh: %s\n"
+			"Teapot Mesh: %s\n"
+			"Bounding Boxes: %s\n"
 			"-------------------\n",
 			elapsed_seconds.count(),
 			CR_VFX_Shadows ? "ON" : "OFF",
@@ -246,7 +257,11 @@ void Raytracer::Start()
 			CR_VFX_JitteredSoftShadows ? "ON" : "OFF",
 			CR_VFX_RecReflections ? "ON" : "OFF",
 			CR_VFX_Supersampling ? "ON" : "OFF",
-			CR_Multicore_Rendering ? "ON" : "OFF");
+			CR_Multicore_Rendering ? "ON" : "OFF",
+			CR_Primitives ? "ON" : "OFF",
+			CR_Cube_Mesh ? "ON" : "OFF",
+			CR_Teapot_Mesh ? "ON" : "OFF",
+			CR_BoundingBoxes ? "ON" : "OFF");
 		Update();
 	}
 }
@@ -349,7 +364,7 @@ void Raytracer::RenderSurfaceAsync(SDL_Surface* _TargetSurface, uint32_t _PixelI
 			SDL_UnlockSurface(_TargetSurface);
 		}
 		SDL_BlitSurface(_TargetSurface, NULL, CR_ScreenSurface, NULL);
-		if (this->CR_MainWindow != nullptr) {
+		if (CR_MainWindow != nullptr) {
 			SDL_UpdateWindowSurface(CR_MainWindow);
 		}
 	}
@@ -480,6 +495,16 @@ void Raytracer::Update()
 					ConfigLighting();
 					Start();
 					break;
+				case SDLK_b:
+					printf("Hotkey Pressed: [B]\n");
+					ToggleBoundingBoxes();
+					Start();
+					break;
+				case SDLK_p:
+					printf("Hotkey Pressed: [P]\n");
+					TogglePrimitives();
+					Start();
+					break;
 				case SDLK_g:
 					printf("Hotkey Pressed: [G]\n");
 					RandomizeObjectPositions();
@@ -487,6 +512,10 @@ void Raytracer::Update()
 					break;
 				case SDLK_r:
 					printf("Hotkey Pressed: [R]\n");
+					CR_Primitives = true;
+					CR_Cube_Mesh = true;
+					CR_Teapot_Mesh = false;
+					ConfigScreen();
 					ConfigEnv();
 					Start();
 					break;
@@ -507,7 +536,6 @@ void Raytracer::Update()
 void Raytracer::ToggleMulticoreRendering()
 {
 	CR_Multicore_Rendering = !CR_Multicore_Rendering;
-	ConfigScreen();
 	Start();
 }
 
@@ -570,6 +598,18 @@ void Raytracer::ToggleSoftShadowSamples()
 	printf("Soft Shadow Samples %f\n", CR_SoftShadowSamples);
 }
 
+void Raytracer::ToggleBoundingBoxes()
+{
+	CR_BoundingBoxes = !CR_BoundingBoxes;
+	ConfigEnv();
+}
+
+void Raytracer::TogglePrimitives()
+{
+	CR_Primitives = !CR_Primitives;
+	ConfigEnv();
+}
+
 void Raytracer::RandomizeObjectPositions()
 {
 	//Formula: Max + rand() / (RAND_MAX / (Min - Max + 1) + 1)
@@ -582,16 +622,16 @@ void Raytracer::RandomizeObjectPositions()
 	}
 }
 
-bool Raytracer::LoadMesh(const char* _FilePath, glm::vec3 _AmbienctC, glm::vec3 _DiffuseC, glm::vec3 _SpecularC, float _Shininess)
+bool Raytracer::LoadMesh(const char* _FilePath, glm::vec3 _AmbienctC, glm::vec3 _DiffuseC, glm::vec3 _SpecularC, float _Shininess, bool _ApplyBoundingBox)
 {
 	std::vector<glm::vec3> MeshVertices;
 	std::vector<glm::vec3> MeshNormals;
 	if (!loadOBJ(_FilePath, MeshVertices, MeshNormals)) {
 		return false;
 	}
-	Mesh* TempMesh = new Mesh(MeshVertices, MeshNormals, _AmbienctC, _DiffuseC, _SpecularC, _Shininess);
+	Mesh* TempMesh = new Mesh(MeshVertices, MeshNormals, _AmbienctC, _DiffuseC, _SpecularC, _Shininess, _ApplyBoundingBox);
 	CR_ActiveObjects.push_back(TempMesh);
-	
+
 	return true;
 }
 
