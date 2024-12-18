@@ -26,7 +26,55 @@ public:
 	Raytracer();
 	~Raytracer();
 
-	bool CR_Active = false;
+	bool m_active = false;
+
+	uint32_t
+		RMask = 0x000000ff,
+		GMask = 0x0000ff00,
+		BMask = 0x00ff0000,
+		AMask = 0xff000000;
+
+	glm::vec3 m_ambientColor;
+
+	Light* m_pointLight = NULL;
+	float m_softShadowSamples = 64;
+	glm::vec3 m_areaLightSize;
+	std::vector<glm::vec3> m_areaLights;
+	float m_areaLightCellSizeX, m_areaLightCellSizeZ;
+
+	std::vector<Shape*> m_activeObjects;
+
+	SDL_Window* m_mainWindow = NULL;
+	SDL_Surface* m_screenSurface = NULL;
+	Camera* m_mainCamera = NULL;
+
+	HitInfo Raycast(glm::vec3 _RayOrigin, glm::vec3 _RayDirection);
+	glm::vec3 Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, int _CurrentDepth = 0, int _MaxDepth = 2);
+
+	bool m_primitives = true;
+
+	bool m_cubeMesh = true;
+	bool m_teapotMesh = false;
+
+	bool m_boundingBoxes = true;
+	bool m_multicoreRendering = true;
+
+	unsigned int m_totalThreadCount;
+
+	float m_screenAspectRatio;
+	float m_fovAngle;
+
+	float m_screenSurfaceHeightDet;
+	float m_screenSurfaceWidthDet;
+
+	unsigned int	m_screenPixelCount;
+	int				m_ssaaSamples = 4;
+
+	bool m_gfxShadows = true;
+	bool m_gfxSoftShadows = true;
+	bool m_gfxJitteredSoftShadows = true;
+	bool m_gfxRecReflections = true;
+	bool m_gfxSupersampling = false;
 
 	bool Init(const char* _WindowName, int _WindowWidth, int _WindowHeight);
 	void Setup();
@@ -41,36 +89,6 @@ public:
 	void Update();
 	void Deactivate();
 
-	uint32_t
-		RMask = 0x000000ff,
-		GMask = 0x0000ff00,
-		BMask = 0x00ff0000,
-		AMask = 0xff000000;
-
-	glm::vec3 CR_AmbientColor;
-
-	Light* CR_PointLight = NULL;
-	float CR_SoftShadowSamples = 64;
-	glm::vec3 CR_AreaLightSize;
-	std::vector<glm::vec3> CR_AreaLights;
-	float CR_AreaLightCellSizeX, CR_AreaLightCellSizeZ;
-
-	std::vector<Shape*> CR_ActiveObjects;
-
-	SDL_Window* CR_MainWindow = NULL;
-	SDL_Surface* CR_ScreenSurface = NULL;
-	Camera* CR_MainCamera = NULL;
-
-	HitInfo Raycast(glm::vec3 _RayOrigin, glm::vec3 _RayDirection);
-	glm::vec3 Raytrace(glm::vec3 _RayOrigin, glm::vec3 _RayDirection, int _CurrentDepth = 0, int _MaxDepth = 2);
-
-	//VFX
-	bool CR_VFX_Shadows = true;
-	bool CR_VFX_SoftShadows = true;
-	bool CR_VFX_JitteredSoftShadows = true;
-	bool CR_VFX_RecReflections = true;
-	bool CR_VFX_Supersampling = false;
-
 	void ToggleShadows();
 	void ToggleShadowType();
 	void ToggleSoftShadowType();
@@ -78,33 +96,13 @@ public:
 	void ToggleSupersampling();
 	void ToggleSoftShadowSamples();
 
-	//Primitives
 	void TogglePrimitives();
-	bool CR_Primitives = true;
-
-	//Meshes
-	bool CR_Cube_Mesh = true;
-	bool CR_Teapot_Mesh = false;
-
-	bool CR_BoundingBoxes = true;
 	void ToggleBoundingBoxes();
 
 	void ToggleCubeMesh();
 	void ToggleTeapotMesh();
 
-	bool CR_Multicore_Rendering = true;
 	void ToggleMulticoreRendering();
-
-	unsigned int CR_TotalThreadCount;
-
-	float CR_ScreenAspectRatio;
-	float CR_FOV_Angle;
-
-	float CR_ScreenSurfaceHeightDet;
-	float CR_ScreenSurfaceWidthDet;
-
-	unsigned int CR_ScreenPixelCount;
-	int CR_SSAA_Samples = 4;
 
 	bool LoadMesh(const char* _FilePath, glm::vec3 _AmbienctC, glm::vec3 _DiffuseC, glm::vec3 _SpecularC, float _Shininess, bool _ApplyBoundingBox);
 	void RandomizeObjectPositions();

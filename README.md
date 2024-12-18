@@ -1,1 +1,1 @@
-# 322COM
+# Hardware-accelerated Raytracer powered by SDL
